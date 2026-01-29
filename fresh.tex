@@ -1,0 +1,846 @@
+\documentclass{ieeeaccess}
+% \include{packages}
+\input{packages} % use input here, because it's before \begin{document}
+\input{commands} % commands must be defined before \begin{document}
+
+\def\BibTeX{{\rm B\kern-.05em{\sc i\kern-.025em b}\kern-.08em
+ T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
+\begin{document}
+% \input{packages} % use input here, because it's before
+
+% \history{Date of publication xxxx 00, 0000, date of current version xxxx 00, 0000.}
+\doi{10.1109/ACCESS.2017.DOI}
+\title{EyanaSSDSim: Explore the Inner Workings of Solid-State Drives with Data Visualization}
+
+%\newcommand{\orcidauthorA}{0000-0002-5268-0074} % Jaeho Kim
+
+\author{\uppercase{Md Habibur Rahman} \authorrefmark{~\orcidicon{0000-0001-8862-1300}1},
+\uppercase{Omar Faroque \authorrefmark{~\orcidicon{0000-0001-9835-3661}2}, Choe Mun Seok\authorrefmark{~\orcidicon{0009-0004-4740-5854}3}, and Jaeho Kim\authorrefmark{~\orcidicon{0000-0002-5268-0074}4}}}
+\address[1]{Dept. AI Convergence Engineering, Gyeongsang National University, Jinju, South Korea (e-mail: habib@gnu.ac.kr)}
+\address[2]{Dept. Computer Science, The University of Texas at Austin, Texas, USA (e-mail: faroque.ae@gmail.com)}
+\address[3]{Dept. AI Convergence Engineering, Gyeongsang National University, Jinju, South Korea (e-mail:ch011015@gnu.ac.kr)}
+\address[4]{Dept. AI Convergence Engineering, Gyeongsang National University, Jinju, South Korea (e-mail: jaeho.kim@gnu.ac.kr)}
+
+\begin{comment}
+\tfootnote{This paragraph of the first footnote will contain support 
+information, including sponsor and financial support acknowledgment. For 
+example, ``This work was supported in part by the U.S. Department of 
+Commerce under Grant BS123456.''}
+\end{comment}
+\markboth
+{Author \headeretal: Preparation of Papers for IEEE TRANSACTIONS and JOURNALS}
+{Author \headeretal: Preparation of Papers for IEEE TRANSACTIONS and JOURNALS}
+
+\corresp{Corresponding author: Jaeho Kim (e-mail: jaeho.kim@gnu.ac.kr).}
+\begin{abstract}
+Massive block I/O systems serve as the backbone of many of today's critical applications, including financial trading platforms, data streaming platforms, cloud storage, and social media platforms. 
+Since these applications involve data-intensive operations, the performance of the data storage system directly affects the user experience.
+The scale and complexity of the applications workloads make it challenging to identify and resolve issues when they arise. Visualization plays a key role in uncovering workload patterns and enhancing our understanding.
+
+ \eyanassdsim is a web-based SSD simulator that provides real-time visual tracking of internal SSD operations, including data placement, page invalidation, garbage collection, and block erasure. The simulator enables performance analysis through quantitative metrics such as write amplification factor (WAF), wear-leveling distribution, and workload characterization. We validate \eyanassdsim against established simulators (FEMU, FTLSim), demonstrating consistent results. As an accessible, installation-free tool, \eyanassdsim bridges the gap between SSD complexity and comprehension for both research and education.
+
+\end{abstract}
+
+\begin{keywords}
+Flash SSD Simulator, Data Placement, Visualization, Write Amplification, Wear Leveling, Garbage Collection, Flash Translation Layer
+\end{keywords}
+
+\titlepgskip=-15pt
+
+\maketitle
+\section{Introduction}
+\label{sec:introduction}
+\PARstart{N}{AND} flash memory-based solid-state drives (SSDs) are widely used as data storage in a wide range of computer platforms today, such as mobile devices, cloud computing platforms, autonomous vehicles, etc.
+
+ 
+
+ 
+
+ 
+
+% === NEW TEXT (REVISED VERSION) ===
+Understanding the internal behavior of SSDs is essential for optimizing storage performance and extending device lifespan. Key factors such as data placement, garbage collection (GC), wear-leveling, and write amplification factor (WAF) are tightly interconnected and significantly affect both performance and endurance~\cite{multistreamssd-hotstorage14, SEPBIT-usenixFAST, MiDAS-usenixFAST}. However, analyzing these internal operations is challenging because they involve complex, dynamic interactions that are difficult to observe and quantify~\cite{allocation-strategy-ics11, greedy-garbage-collection-PE11, Over-Provisioning-IEEE22}.
+
+Existing SSD simulators~\cite{MQSim-USENIX18, SSDModel-USENIX-TC-08, SSDSim-ICS-11, NANDFlashSim-TOS-16, VSSIM-MSST-13, WiscSim-EuroSys-17, SimpleSSD-IEEE18, FEMU-FAST-18, FTLSim-ACM-2017} provide valuable performance metrics and statistics, but they primarily output logs or summary data, making it difficult to visualize and interpret internal SSD operations in real time. Understanding how GC is triggered, tracking block erase counts, and observing invalid page distributions require detailed, intuitive visualization that current tools do not adequately provide.
+
+To address these limitations, we present \eyanassdsim, a web-based SSD simulator that provides real-time visualization of internal SSD operations. Unlike existing simulators, \eyanassdsim enables users to visually track data placement, page invalidation, block erasure, and GC processes as they occur. The simulator supports workload trace uploads, allowing researchers to analyze real-world workloads and compare them with synthetic patterns (sequential, uniform random, Zipf) for firmware optimization.
+
+The major contributions of this paper are as follows:
+\begin{itemize}
+ \item \textbf{Real-time visual tracking}: A novel visualization technique that enables full tracking of data placement and movement inside SSDs, revealing workload characteristics such as sequentiality, randomness, and write locality (Section~\ref{subsec:ComparisonDataPlacement}).
+ \item \textbf{Quantitative wear-leveling analysis}: Introduction of metrics including Degree of Invalid Page Distribution (DoIPD) and Degree of Erase Count (DoEC), along with Fourier Transform-based analysis to evaluate wear-leveling performance across different allocation policies (Section~\ref{subsec:FourierTransform}).
+ \item \textbf{Workload characterization and mapping}: A new metric called Workload Similarity Composition (WSC) that classifies real-world traces into synthetic workload patterns, enabling workload-aware firmware optimizations (Section~\ref{subsec:mapping}).
+ \item \textbf{Web-based accessibility}: An on-demand, installation-free simulator accessible via web browser, validated against established simulators (FEMU, FTLSim) with 95\% user satisfaction from 1,011 survey participants (Section~\ref{performance_validation}, \ref{survey_result}).
+\end{itemize}
+% === END NEW TEXT ===
+
+In the remainder of this paper, we introduce related work and comparative study in Section~\ref{subsec:related_work}.
+The features, architecture, and functionality of our SSD simulator are described in Section~\ref{subsec:navigating_our_ssd_simulator}.
+In Section~\ref{full_system_evaluation}, we showcase the simulator's core capabilities through vivid visualizations of internal SSD operations across representative workloads. Leveraging these visualizations, Section~\ref{analysis_of_the_Simulation_Results} provides in-depth analyses of key phenomena including data placement dynamics, write amplification (WAF), garbage collection (GC) efficiency, and wear-leveling revealing patterns. In Section~\ref{performance_validation}, we validate our simulator against FEMU and FTLSim. Section~\ref{discussion_and_implication} explores broader implications and future enhancements. Section~\ref{survey_result} presents feedback from users of our simulator, and Section~\ref{conclusion} concludes our work.
+Readers are encouraged to explore our on-demand web-based simulator for demonstration purposes\footnote{https://ssd.qbithabib.com}, and the publicly available code\footnote{https://github.com/bithabib/flash\_ssd\_simulator\_web}.
+
+\section{Related Work and Comparative Study}
+\label{subsec:related_work}
+ Most storage products include visualization tools showing throughput and latency over time. What sets our visualizations apart is the ability to display access patterns within the internal SSD blocks. \mqsim~\cite{MQSim-USENIX18} offers features.
+\flashsim~\cite{FlashSim-FICASS-09} provides simulation capabilities. \ssdmodel~\cite{SSDModel-USENIX-TC-08} and other traditional simulators demand significant time for installation. \nandflashsim~\cite{NANDFlashSim-TOS-16}, \vssim~\cite{VSSIM-MSST-13}, \wiscsim~\cite{WiscSim-EuroSys-17}, \ssdplayer~\cite{visualizationSSDPlayer} and \simplessd~\cite{FTLSim-ACM-2017} offer varying functionality and installation complexities. \eyanassdsim distinguishes itself by prioritizing analytical, educational and research-oriented design. \eyanassdsim enhances accessibility and interactivity through on-demand web access, real-time monitoring, and documentation.
+
+Table~\ref{table:features} summarizes the key features of \eyanassdsim and their availability in other simulators. This comparison highlights the gaps in the literature, particularly the lack of real-time visualization and web-based accessibility, which \eyanassdsim addresses. Real-time monitoring and visualization have proven valuable in other domains such as IoT-based monitoring systems~\cite{irrigation-wsn-ieee}, demonstrating the importance of intuitive visual feedback for system analysis.
+
+\begin{table}
+ \centering
+ \caption{Comparison of \eyanassdsim features with other simulators in terms of inner workings and visualization}
+ \label{table:features}
+ \begin{tabular}{|p{2cm}|p{4cm}|p{1.5cm}|}
+ \hline
+ \textbf{Feature} & \textbf{Description} & \textbf{Availability} \\
+ \hline
+ Wear-leveling Analysis & Analyze wear-leveling using erase count and valid, invalid page count & a, b, c, d, e, i, j, l \\
+ \hline
+ Valid and Invalid Page Layout & Displays the layout of valid and invalid pages & a, l \\
+ \hline
+ GC Visualization & Visualizes garbage collection processes & a, e \\
+ \hline
+ Over Provisioning Visualization & Shows the over-provisioned space and its usage & a only \\
+ \hline
+ Data Placement Layout & Visualizes data placement based on erase count, write count, and valid/invalid pages & a, c, l \\
+ \hline
+ Write Amplification Factor (WAF) Analysis & Analyze the write amplification factor & All \\
+ \hline
+ Allocation Policies & Displays data placement based on different allocation policies & a, c \\
+ \hline
+ Dynamic SSD Size & Allows for the simulation of SSDs with varying sizes & a, d, e, i, j, k \\
+ \hline
+ Web-Based Access and Monitoring & Provides web-based access for ease use and real-time monitoring & a only \\
+ \hline
+ Automatic Log File Downloads & Automatically downloads logs for further analysis & a only \\
+ \hline
+ Real-time Visualization & Visual tracking of data movement in real-time & a only \\
+ \hline
+ Workload Trace Upload & Supports uploading custom workload traces & a, b, c, f, g, h, i, j \\
+ \hline
+ \end{tabular}
+
+a. \eyanassdsim,
+b. \mqsim~\cite{MQSim-USENIX18},
+c. \ssdmodel~\cite{SSDModel-USENIX-TC-08},
+d. \ssdsim~\cite{SSDSim-ICS-11},
+e. \nandflashsim~\cite{NANDFlashSim-TOS-16},
+f. \vssim~\cite{VSSIM-MSST-13},
+g. \wiscsim~\cite{WiscSim-EuroSys-17},
+h. \simplessd~\cite{SimpleSSD-IEEE18},
+i. \femu~\cite{FEMU-FAST-18},
+j. \ftlsim~\cite{FTLSim-ACM-2017},
+k. \flashsim~\cite{FlashSim-FICASS-09},
+l. \ssdplayer~\cite{SSDPlayer-HotStorage-15}
+\end{table}
+
+\begin{comment}
+\begin{table*}
+ \centering
+ \caption{Variables used in static allocation schemes equation}
+ \label{table:compare}
+ \resizebox{\textwidth}{!}{%
+ \begin{tabular}{|l|p{2cm}|p{2cm}|p{2cm}|p{2cm}|p{2cm}|p{4cm}|p{2cm}|p{2cm}|p{2cm}|p{2cm}|}
+ \hline
+ \textbf{Simulator} & \textbf{Page level address mapping} & \textbf{Workload input} & \textbf{FTL wear-leveling} & \textbf{Process visualization} & \textbf{Lines of code} & \textbf{Is installation needed?} & \textbf{Real-time monitoring} & \textbf{Read, Write, Erase, GC \& Trim interactive visualization} & \textbf{Interactive graph} & \textbf{FTL wear-leveling unit} \\
+ \hline
+ EyanaSSDSim & $\checkmark$ & $\checkmark$ & $\checkmark$ & $\checkmark$ & 7k & On-Demand Web Access & $\checkmark$ & $\checkmark$ & $\checkmark$ & $\checkmark$ \\
+ \hline
+ MQSimh & $\checkmark$ & $\checkmark$ & $\checkmark$ & & 13k & Linux or windows executable file & & & & $\checkmark$ \\
+ \hline
+ FlashSIM & $\checkmark$ & & $\checkmark$ & & 1k & Linux + Windows executable file & & & & $\checkmark$ \\
+ \hline
+ SSDModel & $\checkmark$ & $\checkmark$ & $\checkmark$ & & 8k & Linux + virtual box & & & & $\checkmark$ \\
+ \hline
+ SSDSim & $\checkmark$ & & & & 5k & Compile and run executable file& & & & \\
+ \hline
+ NANDFlashSim & & & & & 7k & Package Installation & & & & \\
+ \hline
+ VSSIM & $\checkmark$ & $\checkmark$ & $\checkmark$ & & 6k & Linux + QEMU + KVM & & & & $\checkmark$ \\
+ \hline
+ WiscSim & $\checkmark$ & $\checkmark$ & $\checkmark$ & & 7k & Linux + virtual box & & & & $\checkmark$ \\
+ \hline
+ SimpleSSD & & $\checkmark$ & $\checkmark$ & & 7k & Linux + config file & & & & $\checkmark$ \\
+ \hline
+ \end{tabular}%
+ }
+\end{table*}
+\end{comment}
+
+\section{Navigating Our SSD Simulator: Features, Architecture, and Functionality}
+\label{subsec:navigating_our_ssd_simulator}
+
+Fig.~\ref{fig:highlevelview} illustrates a high-level overview of \eyanassdsim. Our simulator manages incoming I/O requests through several layers.
+ A request is received either from the Host Interface Layer (HIL) or by uploading a trace file. HIL process each request, schedules them, and assigns them for execution on the SSD. The Flash Translation Layer (FTL) then translates the targeted address. The Allocation Scheme Layer (ASL) processes the request based on the host-selected allocation policy, which determines how data is distributed across the flash memory. Upon completion of the I/O request, data is transferred to the host system using direct memory access (DMA). The ASL reports back to the host-side controller. It monitors the data written into the SSD and signals the controller to execute GC when necessary. GC reclaims space by erasing invalid data blocks. The process starts when usage reaches GC-threshold-percent-high (99.9995\%) and continues until it reduces to GC-threshold-percent (99.9990\%). Users can manually trigger TRIM operations from the host side to free unused data blocks. The OPS is a reserved portion of the SSD that enhances wear-leveling, performance, and GC efficiency. 
+Table~\ref{table:devicespecification} presents the range of adjustable parameters for our NAND flash device simulator, with the corresponding experimental values provided in parentheses.
+
+\begin{table}
+ \centering
+ \caption{NAND flash specifications of \eyanassdsim}
+ \label{table:devicespecification}
+ \begin{tabular}{|p{1.2cm}|p{1.8cm}|p{2.3cm}|p{1.8cm}|}
+
+ \hline
+ Parameter & Value & Parameter & Value \\
+ \hline
+ PS & 4096B & No. of Channel & 2(2)\\
+ \hline
+ SS & 512B-4KB (512B) & PPC & 01-02 (02)\\
+ \hline
+ SPP & 01-32 (08) & Total Capacity & 3.27MB-536GB (5.03GB)\\
+ \hline
+ PPB & 64-256 (256) & GC policy & Greedy \\
+ \hline
+ BPP & 100-1000 (300) & Allocation Policy & S1-S6 (S1-S5)\\
+ \hline
+ PPD & 01-04 (04) & OPS(\%)& Any\% (10,20,25)\\
+ \hline
+ DPC & 01-04 (02) & GC\_thres\_pcent & 99.9990\\
+ \hline
+ CPC & 01-02 (1) & GC\_thres\_pcent\_high & 99.9995\\
+ \hline
+
+ \end{tabular}
+ a. PS: Page Size,
+ b. SS: Sector Size,
+ c. SSP: Sector Per Page,
+ d. PPB: Page Per Block,
+ e. BPP: Block Per Plane,
+ f. PPD: Plane Per Die,
+ g. DPC: Die Per Chip,
+ h. CPC: Chip Per Channel
+\end{table}
+
+\begin{figure*}
+ \centering
+ \includegraphics[width=\linewidth, height=8.2cm]{fig/eyana_ssd_figure.png}
+ \caption{High-level architecture of \eyanassdsim, showing the data flow from host interface through Flash Translation Layer (FTL) and Allocation Scheme Layer (ASL) to NAND flash memory, including garbage collection (GC) and TRIM operations}
+ \label{fig:highlevelview}
+
+\end{figure*}
+
+\subsection{Comprehensive Firmware Simulation}
+\subsubsection{SSD Setup and Host Interface Layer}
+
+In \eyanassdsim, users can specify I/O size or upload a trace file, choose an allocation scheme, and perform operations like TRIM and garbage collection shown in Fig.~\ref{fig:highlevelview} and~\ref{fig:basic_ssd}. After read and write operations, HIL creates graphs for WC, RC, EC, and WAF.
+
+The Host Interface Layer (HIL) shown in Fig.~\ref{fig:highlevelview} and~\ref{fig:basic_ssd} handles incoming requests, translating workload trace files into logical block addresses (LBAs), request types, and timestamps. It forwards these details to the FTL. 
+\begin{figure}
+ \centering
+ \includegraphics[width=\linewidth, height=4cm]{fig/Basic_SSD_Simulation.png}
+ \caption{Web interface of the basic SSD simulator showing user controls for I/O operations, allocation scheme selection, and real-time visualization of write count (WC), read count (RC), erase count (EC), and WAF metrics}
+ \label{fig:basic_ssd}
+\end{figure}
+\subsubsection{Flash Translation Layer}
+
+In \eyanassdsim, the FTL shown in Fig.~\ref{fig:highlevelview} handles I/O requests by maintaining a mapping table of logical and physical pages. For reads, it translates logical page numbers (LPNs) to physical page numbers (PPNs). For writes, it allocates new physical pages, updates the mapping table, and manages data placement based on user selected allocation scheme. When an update occurs, the previous physical location is marked invalid. When no free pages are available, the FTL initiates garbage collection (GC) using a greedy policy: selecting a victim block with the highest number of invalid pages, migrating valid data, and releases the block for reuse. Wear-leveling ensures even LBAs distribution across blocks. The efficiency of GC is measured using the write amplification factor (WAF), defined as the ratio of SSD internal writes to host writes. 
+
+\subsubsection{Page Allocation Schemes}
+
+\begin{comment}
+In our study, we explore six distinct static allocation schemes, labeled as 
+\begin{itemize}
+\item S1:chip$ \rightarrow $die$ \rightarrow $plane$ \rightarrow $channe, 
+\item S2:channel$ \rightarrow $chip$ \rightarrow $die$ \rightarrow $plane, 
+\item S3:channel$ \rightarrow $plane$ \rightarrow $chip$ \rightarrow $die, 
+\item S4:channel$ \rightarrow $die$ \rightarrow $chip$ \rightarrow $plane, 
+\item S5:channel$ \rightarrow $plane$ \rightarrow $die$ \rightarrow $chip, and 
+\item S6:channel$ \rightarrow $die$ \rightarrow $plane$ \rightarrow $chip. 
+\end{itemize}
+\end{comment} 
+
+FTL maps logical page numbers (LPN) to physical pages, with allocation schemes that influence SSD parallelism and data placement~\cite{allocation-strategy-ics11, pagealloc-hotstorage12}. Static allocation pre-assigns LPNs to channels, chips, dies, and planes using predetermined formulas, while dynamic allocation distributes erase operations more evenly, improving wear-leveling. 
+
+ We compared five static allocation strategies, S1 to S5. Detailed descriptions are provided in subsection~\ref{subsec:FourierTransform}.
+
+We formularize a general law to determine the placement of a logical page based on any given priority sequence. Table~\ref{table:variables_explanation} presents the variables used. If the priority order is represented as A, B, C, and D, the general allocation laws are:
+
+\begin{itemize}
+ \item {Position of the first component (A)}:
+ \[
+ A = \text{lpn} \% n_A
+ \]
+ \item {Position of the second component (B)}:
+ \[
+ B = \left\lfloor \frac{\text{lpn}}{n_A} \right\rfloor \% n_B
+ \]
+ \item {Position of the third component (C)}:
+ \[
+ C = \left\lfloor \frac{\text{lpn}}{(n_A \times n_B)} \right\rfloor \% n_C
+ \]
+ \item {Position of the fourth component (D)}:
+ \[
+ D = \left\lfloor \frac{\text{lpn}}{(n_A \times n_B \times n_C)} \right\rfloor \% n_D
+ \]
+\end{itemize}
+
+Whenever we have a priority sequence, we apply this formula by taking the first component as A, the second as B, the third as C, and the fourth as D to calculate the placement of the logical page example given in Table~\ref{table:s1example}.
+
+\begin{table}
+ \centering
+ \caption{Variables used in static allocation schemes equations}
+ \label{table:variables_explanation}
+ \begin{tabular}{|l|c|}
+ \hline
+ \textbf{Variable} & \textbf{Explanation} \\
+ \hline
+ lpn & Logical page number (LPN) \\
+ \hline
+ $n_{\text{ch}}$ & The number of channels in an SSD \\
+ \hline
+ $n_{\text{cp}}$ & The number of chips in a channel \\
+ \hline
+ $n_{\text{die}}$ & The number of dies in a chip \\
+ \hline
+ $n_{\text{pl}}$ & The number of planes in a die \\
+ \hline
+ $n_{\text{A-D}}$ & The number of the component A-D \\
+ \hline
+ \end{tabular}
+\end{table}
+
+\begin{table}[h]
+ \centering
+ \caption{Examples of S1 Allocation Scheme}
+ \label{table:s1example}
+ \begin{tabular}{|p{1.1cm}|p{2cm}|p{4.2cm}|}
+ \hline
+ \textbf{Allocation Scheme} & \textbf{Priority Order} & \textbf{Formulas} \\
+ \hline
+ \textbf{S1} & chip(CP)$ \rightarrow $die(DI) $ \rightarrow $plane(PL) $ \rightarrow $channel(CN) &
+ \begin{tabular}{l}
+ - Chip: \( \text{chip} = \text{lpn} \% n_{\text{cp}} \) \\
+ - Die: \( \left\lfloor \frac{\text{lpn}}{n_{\text{cp}}} \right\rfloor \% n_{\text{die}} \) \\
+ - Plane: \( \left\lfloor \frac{\text{lpn}}{(n_{\text{cp}} \times n_{\text{die}})} \right\rfloor \% n_{\text{pl}} \) \\
+ - Channel: \( \left\lfloor \frac{\text{lpn}}{(n_{\text{cp}} \times n_{\text{die}} \times n_{\text{pl}})} \right\rfloor \% n_{\text{ch}} \)
+ \end{tabular} \\
+ \hline
+
+ \end{tabular}
+\end{table}
+Using this method, we can create formulas for any given allocation pattern based on the priority order of the components. In our simulator, we support six different allocation schemes: S2: CN$ \rightarrow $ CP$ \rightarrow $ DI$ \rightarrow $ PL, S3:CN$ \rightarrow $PL$ \rightarrow $CP$ \rightarrow $DI, S4: CN$ \rightarrow $ DI$ \rightarrow $ CP$ \rightarrow $ PL, S5: CN$ \rightarrow $ PL$ \rightarrow $ DI$ \rightarrow $ CP, and S6: CN$ \rightarrow $ DI$ \rightarrow $ PL$ \rightarrow $ CP.
+
+\section{Full System Evaluation}
+\label{full_system_evaluation}
+The main feature of our simulator is visualizations of an SSD.
+In this section, we show visualizing and analyzing the internal operations that affect the performance and lifespan of SSDs.
+
+We present visualization examples of data movement inside an SSD and introduce performance and wear-leveling analysis models.
+The configuration of the SSD simulator for evaluations is specified by values in parentheses in Table~\ref{table:devicespecification}.
+In this evaluation, we use three workloads: sequential, uniform random, and Zipf with a total request volume of 5.03GB, 4KB write requests, and 80\% valid blocks of the SSD capacity.
+
+\textbf{Implementation and System Configuration:} \eyanassdsim is implemented as a web-based application using Python (Flask framework) for the backend simulation engine and JavaScript for the frontend visualization interface. The simulator runs on a server with an Intel Xeon E5-2680 v4 processor (2.40GHz, 14 cores), 64GB RAM, and Ubuntu 20.04 LTS. The web interface is accessible via standard web browsers (Chrome, Firefox, Safari) without requiring any client-side installation. All experiments were conducted by executing workloads through the simulator's web interface, with results automatically logged and exported for analysis.
+
+\textbf{Evaluation Metrics:} The following metrics are used throughout our evaluation:
+\begin{itemize}
+ \item \textbf{Write Amplification Factor (WAF):} Ratio of total physical writes to logical writes, calculated as WAF = Physical Writes / Logical Writes. Lower WAF indicates better efficiency.
+ \item \textbf{Degree of Invalid Page Distribution (DoIPD):} Standard deviation of invalid page counts across blocks, measuring GC efficiency (Equation~\ref{eq:doipd}).
+ \item \textbf{Degree of Erase Count (DoEC):} Standard deviation of erase counts across blocks, measuring wear-leveling uniformity (Equation~\ref{eq:doec}).
+ \item \textbf{Workload Similarity Composition (WSC):} Percentage-based metric classifying real-world traces into synthetic workload patterns.
+\end{itemize}
+
+Table~\ref{table:math_notations} provides a comprehensive summary of all mathematical notations used throughout this paper.
+
+\begin{table}[h]
+ \centering
+ \caption{Summary of mathematical notations used in this paper}
+ \label{table:math_notations}
+ \begin{tabular}{|p{1.5cm}|p{6cm}|}
+ \hline
+ \textbf{Symbol} & \textbf{Definition} \\
+ \hline
+ \multicolumn{2}{|c|}{\textit{General SSD Parameters}} \\
+ \hline
+ $n$ & Total number of blocks in the SSD \\
+ \hline
+ $N$ & Length of sequence (number of data points) in Fourier Transform \\
+ \hline
+ LPN & Logical Page Number \\
+ \hline
+ PPN & Physical Page Number \\
+ \hline
+ LBA & Logical Block Address \\
+ \hline
+ \multicolumn{2}{|c|}{\textit{Invalid Page Distribution (DoIPD)}} \\
+ \hline
+ $I_i$ & Number of invalid pages in block $i$ \\
+ \hline
+ $\mu_I$ & Mean number of invalid pages per block: $\mu_I = \frac{1}{n}\sum_{i=1}^{n} I_i$ \\
+ \hline
+ DoIPD & Degree of Invalid Page Distribution (std. dev. of invalid pages) \\
+ \hline
+ \multicolumn{2}{|c|}{\textit{Erase Count Distribution (DoEC)}} \\
+ \hline
+ $E_i$ & Erase count of block $i$ \\
+ \hline
+ $\mu_E$ & Mean erase count per block: $\mu_E = \frac{1}{n}\sum_{i=1}^{n} E_i$ \\
+ \hline
+ DoEC & Degree of Erase Count (std. dev. of erase counts, wear\_degree) \\
+ \hline
+ \multicolumn{2}{|c|}{\textit{Fourier Transform Analysis}} \\
+ \hline
+ $x[n]$ & Sequence of erase counts per block \\
+ \hline
+ $X[k]$ & Fourier Transform of sequence at frequency $k$ \\
+ \hline
+ $A[k]$ & Amplitude of Fourier Transform: $A[k] = |X[k]|$ \\
+ \hline
+ $\mu_A$ & Average amplitude: $\mu_A = \frac{2}{N}\sum_{k=0}^{N/2-1} A[k]$ \\
+ \hline
+ $\sigma_A$ & Standard deviation of amplitudes \\
+ \hline
+ $k$ & Frequency component index in Fourier Transform \\
+ \hline
+ \multicolumn{2}{|c|}{\textit{Allocation Scheme Variables}} \\
+ \hline
+ $n_{ch}$ & Number of channels in the SSD \\
+ \hline
+ $n_{cp}$ & Number of chips per channel \\
+ \hline
+ $n_{die}$ & Number of dies per chip \\
+ \hline
+ $n_{pl}$ & Number of planes per die \\
+ \hline
+ $n_{A-D}$ & Number of components A, B, C, or D in priority sequence \\
+ \hline
+ \end{tabular}
+\end{table}
+
+\subsection{Visual Interpretation Guidance}
+All visual symbols and color codes used in the SSD layout figures are explained in Table~\ref{table:visual_interpretation}. This table serves as the reference for interpreting all SSD visualizations.
+
+\begin{table}
+ \centering
+ \caption{Legend for block color and symbol representation in visualizations}
+ \label{table:visual_interpretation}
+ \begin{tabular}{|p{1.6cm}|p{2.6cm}|p{3.1cm}|}
+ \hline
+ \textbf{Symbol/Color} & \textbf{Meaning} & \textbf{SSD Behavior Implication} \\
+ \hline
+ Tick-sign & All pages are valid & Block actively storing live data \\
+ \hline
+ Cross-sign & All pages are obsolete & Ideal candidate for GC erasure \\
+ \hline
+ Dark green & High number of valid pages & Lower priority for GC \\
+ \hline
+ Bright green & High number of invalid pages & High priority for GC \\
+ \hline
+ White / Empty block & Free block (contains no data) & Ready for new data writes \\
+ \hline
+ \end{tabular}
+\end{table}
+
+\subsection{Comparison of Data Placement for Different Workloads}
+\label{subsec:ComparisonDataPlacement}
+Fig.~\ref{fig:data_placement_3workloads} illustrates data placement layouts for the three workloads at two stages: The first stage is when user writes reach GC\_thres\_pcent\_high as mentioned in Table~\ref{table:devicespecification}. The second stage is when the workload is complete.
+Fig.~\ref{fig:seq_initial},~\ref{fig:random_initial}, and~\ref{fig:zipf_initial} show the data layout at the first stage, while Fig.~\ref{fig:seq_final},~\ref{fig:random_final}, and~\ref{fig:zipf_final} represent the second stage.
+
+Each subfigure represents a single channel with 3,072 blocks. \eyanassdsim features two channels, as specified in Table~\ref{table:devicespecification}. The total number of blocks in the SSD is 6,124 and each block is represented as color-coded square boxes (256 pages per block).
+
+In Fig.~\ref{fig:seq_initial}, sequential workloads exhibit a structured pattern of invalidation's and GC, resembling a kernel (CNN, image processing)~\cite{kernel} sliding over a grid of blocks. As data is written sequentially, updates cause older pages to become invalid in a wave-like manner. When the GC\_thres\_pcent\_high reached, the SSD reclaims space by relocating valid pages and erasing blocks. This kernel-like movement of GC ensures that erasures are spread evenly across the drive, minimizing valid pages migration, reduces write amplification and lowers GC overhead.
+
+In the Zipf workload, as shown in Fig.~\ref{fig:zipf_initial} and Fig.~\ref{fig:zipf_final}, both stages show a specific group of blocks highlighted in bright green, indicating that these blocks have been erased and rewritten. Invalid pages tend to concentrate within this group. When GC occurs, blocks are selected from this group, and as data is rewritten, pages within this group are more likely to be invalidated. This leads to an increased erasure count for this group, which can be detrimental to wear-leveling. However, this clustering of invalid pages also benefits garbage collection, as blocks can be efficiently reclaimed with minimal valid page migration. Zipf writes achieve a better WAF compared to sequential writes, as shown in Fig.~\ref{fig:ops_effect_waf} and Fig.~\ref{fig:waf_comparison} ~\ref{analysis_of_the_Simulation_Results}~\ref{performance_validation}.
+
+In the uniform random workload shown in Fig.~\ref{fig:random_initial} and Fig.~\ref{fig:random_final}, most blocks appear dark green, indicating that invalid pages are distributed across all blocks. This results in an even distribution of erasure counts across all blocks, which is beneficial for wear-leveling. However, this even distribution is less efficient for GC. Since valid pages are scattered across blocks, it leads to higher write amplification.
+
+In summary, in terms of reducing the WAF, the Zipf workload is the most effective, followed by sequential and uniform random.
+ For wear-leveling, sequential is best, followed by uniform random, and then Zipf. These results highlight the trade-offs between WAF reduction and wear-leveling.
+
+\begin{figure*}[h]
+ \centering
+ \subfloat[Sequential]{
+ \includegraphics[width=0.30\linewidth, height=5cm]{fig/layout/placement_comparison/seq_initial.png}
+ \label{fig:seq_initial}
+ }
+ \hfill
+ \subfloat[Uniform random]{
+ \includegraphics[width=0.30\linewidth, height=5cm]{fig/layout/placement_comparison/random_initial.png}
+ \label{fig:random_initial}
+ }
+ \hfill
+ \subfloat[Zipf]{
+ \includegraphics[width=0.30\linewidth, height=5cm]{fig/layout/placement_comparison/zipf_initial.png}
+ \label{fig:zipf_initial}
+ }
+ \vspace{0cm} % Adjust spacing as needed
+ \begin{center} First stage: When user writes reach GC\_thres\_pcent\_high of the SSD
+ \end{center}
+ \vspace{0cm}
+
+ \subfloat[Sequential]{
+ \includegraphics[width=0.30\linewidth, height=5cm]{fig/layout/placement_comparison/seq_final.png}
+ \label{fig:seq_final}
+ }
+ \hfill
+ \subfloat[Uniform random]{
+ \includegraphics[width=0.30\linewidth, height=5cm]{fig/layout/placement_comparison/random_final.png}
+ \label{fig:random_final}
+ }
+ \hfill
+ \subfloat[Zipf]{
+ \includegraphics[width=0.30\linewidth, height=5cm]{fig/layout/placement_comparison/zipf_final.png}
+ \label{fig:zipf_final}
+ }
+ \vspace{0cm} % Adjust spacing as needed
+ \begin{center} Second stage: When the workload streaming is complete
+ \end{center}
+ \vspace{0cm}
+ \caption{Visualization of SSD block states at two stages (before GC trigger and after workload completion) for sequential, uniform random, and Zipf workloads. (The darkest green block: the most valid pages, the brightest green: the most invalid pages, cross-signed blocks: fully invalid, and tick-signed: fully valid)}
+ \label{fig:data_placement_3workloads}
+\end{figure*}
+
+\subsection{Impact of OPS on WAF for Various Workloads}
+\label{waf_comparison}
+Fig.~\ref{fig:ops_effect_waf} compares WAFs for the sequential, uniform random, and Zipf workloads with 10\% and 20\% OPS. Each line represents a different workload. The gray dots mark the peak WAF points, while the black dots indicate the final WAF.
+
+For the sequential workload, the WAF starts at 1.0 and increases to 1.35 with 10\% OPS. With 20\% OPS, WAF decreases to 1.2 due to reduced GC demands.
+ The uniform random workload shows a sharp increase in WAF, starting at 1.0 and peaking at 2.58 with 10\% OPS. After reaching this peak, WAF declines. With 20\% OPS, WAF reaches a maximum of 1.41.
+Zipf workloads demonstrate the lowest WAF. WAF starts at 1.0, reaching 1.07 with 10\% OPS and decreasing to 1.03 with 20\% OPS. 
+
+In summary, increased OPS reduces WAF across all workloads, with uniform random gaining the most.
+
+\begin{figure}
+ \centering
+ \includegraphics[width=9cm, height=5cm]{fig/layout/waf_erase_count_graph/waf_vs_time.png}
+ \caption{WAF progression over time for sequential, uniform random, and Zipf workloads comparing 10\% vs 20\% OPS configurations. Gray dots indicate peak WAF, black dots show final WAF values. Higher OPS reduces WAF across all workloads}
+ \label{fig:ops_effect_waf}
+\end{figure}
+
+\section{Analysis of the Simulation Results}
+\label{analysis_of_the_Simulation_Results}
+\subsection{Analysis of Relationship between WAF and Invalid Page Distribution}
+\label{subsec:InvalidPagesPatterns}
+
+The distribution of invalid pages per block impacts SSD performance and longevity by influencing GC and wear-leveling. Invalid pages, created by updates or deletions, must be efficiently managed to minimize WAF.
+
+Fig.~\ref{fig:invalidpage} presents the distribution of invalid pages per block for the sequential, uniform random, and Zipf workloads. Each histogram is overlaid with a bell curve to highlight the mean and Degree of Invalid Page Distribution (DoIPD) by Equation~\ref{eq:doipd}. The mean of invalid pages per block is expressed as $\mu_I=\frac{1}{n} \sum_{i=1}^{n} I_i$, where $n$ is the number of blocks in an SSD, and $I$ is the number of invalid pages per block.
+
+\begin{align}
+DoIPD =\sqrt{\frac{\sum_{i=1}^{n}(I_i - \mu_I)^2}{n}}
+\label{eq:doipd}
+\end{align}
+
+The Zipf workload (\(\mu: 25.23\), DoIPD: 58.50) exhibits a broad distribution, with some blocks accumulating more invalid pages. This high concentration supports efficient GC and lowers WAF, making it optimal for WAF minimization. The sequential workload (\(\mu: 25.26\), DoIPD: 39.04) offers a balance between WAF and wear-leveling.
+
+ The uniform random pattern (\(\mu: 25.40\), DoIPD: 26.98) demonstrates a more even distribution of invalid pages. This uniformity is beneficial for wear-leveling. However, lower GC efficiency results in more pages to be copied during garbage collection, increasing WAFs compared to the Zipf and sequential workloads shown in Fig.~\ref{fig:ops_effect_waf} 
+\begin{figure}
+ \centering
+ \includegraphics[width=8cm, height=4cm]{fig/layout/waf_erase_count_graph/invalid_page_distribution.png}
+ \caption{Histogram showing the distribution of invalid pages per block with overlaid bell curves for sequential, uniform random, and Zipf workloads. Mean ($\mu$) and DoIPD values indicate the concentration of invalid pages, where higher DoIPD suggests better GC efficiency}
+ \label{fig:invalidpage}
+\end{figure}
+
+\subsection{Analyzing Wear-leveling for Various Workloads}
+\label{subsec:EraseCountDistribution}
+Since flash memory has limited P/E cycles, wear-leveling of blocks on an SSD is necessary. 
+We use a simple formula to access the degree of wear-leveling as follows.
+The mean of erase counts is expressed as $\text{Mean }\mu_E=\frac{1}{n} \sum_{i=1}^{n} E_i$, where $n$ is the number of blocks and $E$ is the erase counts per block. The distribution of erase counts is quantified by Equation~\ref{eq:doec}.
+
+\begin{align}
+DoEC (wear\_degree) =\sqrt{\frac{\sum_{i=1}^{n}(E_i - \mu_E)^2}{n}}
+\label{eq:doec}
+\end{align}
+
+Fig.~\ref{fig:erasecount} presents a histogram with bell curves to analyze the erase counts for SSD blocks under three access patterns: sequential, uniform random, and Zipf workloads. The sequential workload has the lowest mean erase count (\(\mu = 1.65\)) and the smallest DoEC (\(DoEC = 2.92\)), indicating wear on the SSD blocks is more uniform. The uniform random workload shows higher mean erase counts (\(\mu = 3.02\)) and greater variability (\(DoEC = 4.38\)), while Zipf shows the highest variability (\(DoEC = 4.93\)) suggesting uneven wear.
+ The sequential workload is optimal for wear-leveling.
+According to the invalid page distribution at the first stage in Fig.~\ref{fig:random_initial}, the uniform random appears best for wear-leveling. However, the erase count analysis in Fig.~\ref{fig:erasecount} and the second stage in Fig.~\ref{fig:random_final} show that sequential is better for wear-leveling. ~\ref{fig:invalidpage}~\ref{fig:invalidpage} This is due to the inherently sequential nature of the workload, as explained in sub-section~\ref{subsec:ComparisonDataPlacement}.
+
+\begin{figure}
+ \centering
+ \includegraphics[width=8cm, height=4cm]{fig/layout/waf_erase_count_graph/erase_count_distribution.png}
+ \caption{Histogram of erase count distribution per block with bell curves for sequential, uniform random, and Zipf workloads. Lower mean ($\mu$) and DoEC indicate better wear-leveling; sequential workload achieves the most uniform wear distribution}
+ \label{fig:erasecount}
+\end{figure}
+
+\subsection{Fourier Transform Insights: Wear Leveling Performance Comparison between Different Allocation Schemes}
+\label{subsec:FourierTransform}
+
+Allocation policies in data storage systems are critical for performance and longevity as they determine data distribution across storage blocks, affecting read/write speeds, wear-leveling, and efficiency~\cite{allocation-strategy-ics11}. \eyanassdsim can be used to analyze different allocation policies.
+
+ Simply comparing raw erase count differences did not reveal meaningful insights. To address this, we applied the Fourier Transform to analyze the time-domain data in the frequency domain. Below is the mathematical representation:
+
+\begin{figure}
+ \centering
+ \includegraphics[width=\linewidth, height=3.8cm]{fig/allocation_policy_comparison_colored_values.png}
+ \caption{Heatmap comparing standard deviation of Fourier Transform amplitudes ($\sigma_A$) across five allocation policies (S1-S5) for sequential, uniform random, and Zipf workloads. Lower values (darker colors) indicate better wear-leveling performance}
+ \label{fig:allocation_policy_compare_fft}
+\end{figure}
+
+Let \( x[n] \) be the sequence of erase counts per block, where \( n \) ranges from 0 to \( N-1 \).
+The Fourier Transform \( X[k] \) of this sequence is given by: $X[k] = \sum_{n=0}^{N-1} x[n] e^{-i \frac{2\pi}{N} kn}$.
+The amplitude \( A[k] \) of the Fourier Transform at frequency component \( k \) is: {$ A[k] = |X[k]| $}.
+The average amplitude \( \mu_A \) is: $\mu_A = \frac{2}{N} \sum_{k=0}^{N/2 - 1} A[k]$.
+The standard deviation of the amplitudes \( \sigma_A \) is Equation~\ref{eq:degree_of_amplitude} :
+\begin{equation}
+\sigma_A = \sqrt{ \frac{2}{N} \sum_{k=0}^{N/2 - 1} (A[k] - \mu_A)^2 }
+\label{eq:degree_of_amplitude}
+\end{equation}
+
+In the Fourier Transform results shown in Fig.~\ref{fig:s1s2}, the x-axis represents the frequency of block which means variations in erase count between blocks.
+
+\begin{figure}
+ \centering
+ \includegraphics[width=\linewidth, height=3.8cm]{fig/fft_plot.png}
+ \caption{Fourier Transform amplitude spectra of erase counts for sequential, uniform random, and Zipf workloads. X-axis shows frequency (block variation rate), Y-axis shows amplitude magnitude. Zipf exhibits highest peaks indicating concentrated erasures on specific blocks}
+ \label{fig:s1s2}
+\end{figure}
+The y-axis represents the amplitude, indicating the magnitude of these variations. Lower variation in amplitude corresponds to better wear-leveling.
+
+This transformation revealed subtle periodic patterns. As highlighted in Fig.~\ref{fig:zipf_initial},~\ref{fig:zipf_final}, this distribution follows a Zipf-like behavior, where certain blocks undergo more erasures than others, as shown in Fig.~\ref{fig:s1s2}. ~\ref{fig:erasecount}
+
+Applying Fourier transformation~\cite{Book-Similarity-07}~\cite{fourier2025}, we identified patterns in erase counts and applied standard deviation analysis to measure amplitude variations. S1 and S4 demonstrate the lowest standard deviations for the sequential workload (see Fig.~\ref{fig:allocation_policy_compare_fft}), indicating better wear-leveling.
+ S5 exhibited lower standard deviations for the uniform random workload.
+ S3 shows improved results for the Zipf workload.
+This highlights \eyanassdsim ability to differentiate between allocation strategies. 
+
+Based on the Fourier Transform results in Fig.~\ref{fig:s1s2} and the standard deviation values shown in Fig.~\ref{fig:allocation_policy_compare_fft}, the sequential workload yields the best wear-leveling, uniform random performs well, and Zipf performs the worst. Among the allocation schemes, S3 provides better wear-leveling for Zipf, S1 and S4 for sequential, while S5 shows better performance for uniform random.
+
+\subsection{Real-World Workload Analysis: WAF and Invalid Page Distribution}
+
+\begin{figure*}[h]
+ \centering
+ \subfloat[Invalid page distribution. Dots represents invalid page count (IPC) and line represents DoIPD.]{
+
+ \includegraphics[width=0.36\linewidth, height=5cm]{fig/real_workload_analysis.png}
+ \label{fig:real_workload_analysis}
+ }
+ \subfloat[TPC-C (OPS 25\%)]{
+ \includegraphics[width=0.15\linewidth, height=5cm]{fig/layout/placement_comparison/tpcc_op_25.png}
+ \label{fig:tpcc_op_25}
+ }
+ \subfloat[TPC-C (OPS 10\%)]{
+ \includegraphics[width=0.15\linewidth, height=5cm]{fig/layout/placement_comparison/tpcc_op_10.png}
+ \label{fig:tpcc_op_10}
+ }
+ \subfloat[prxy (OPS 25\%)]{
+ \includegraphics[width=0.15\linewidth, height=5cm]{fig/layout/placement_comparison/msr_proxy_op_25.png}
+ \label{fig:prxy_op_25}
+ }
+ % Add the additional text
+ \subfloat[prxy (OPS 10\%)]{
+ \includegraphics[width=0.15\linewidth, height=5cm]{fig/layout/placement_comparison/msr_proxy_op_10.png}
+ \label{fig:prxy_op_10}
+ }
+ \caption{(a) Scatter plot of invalid page counts per block with cumulative DoIPD lines for TPC-C and prxy workloads at different OPS levels; (b-e) corresponding SSD block state visualizations showing the impact of OPS on data clustering. (The darkest green block: the most valid pages, the brightest green: the most invalid pages, cross-signed blocks: fully invalid, and tick-signed: fully valid)}
+ \label{fig:data_placement_real_data}
+\end{figure*}
+
+In this section, we analyze the relationship between data placement inside the SSD and WAF in real-world workloads. We used two workloads TPC-C~\cite{tpc-c, tpcc-ieee-ex} and MSR prxy~\cite{write_off_loading}.
+Prxy was chosen because it is highly write-intensive, with 97\% writes and I/O size of 7.07 KB~\cite{EnablingCostEffective, write_off_loading}.
+TPC-C was selected because it has a I/O size of 7.55 KB.
+Both workloads emphasize small write operations.
+
+Fig.~\ref{fig:real_workload_analysis} illustrates the distribution of invalid pages across SSD blocks for different workloads and OPS configurations.
+The table above Fig.~\ref{fig:real_workload_analysis} summarizes key metrics: higher values correlating to lower WAF (e.g., prxy at 25\% OPS has a mean of 21.8 and a WAF of 1.008, whereas TPC-C at 10\% OPS has a mean of 5.4 and a WAF of 5.12).
+
+The DoIPD represents how invalid pages are distributed across blocks, with higher values indicating greater variation (prxy at 25\% OPS has 25.45, while TPC-C at 10\% OPS has 2.16). Fig.~\ref{fig:data_placement_real_data} visually confirms these trends.
+
+For TPC-C with 25\% OPS, invalid pages are evenly distributed in Fig.~\ref{fig:tpcc_op_25}, with DoIPD of 4.42. This distribution results in WAF of 2.3 ~\ref{fig:real_workload_analysis}. For TPC-C with 10\% OPS, the invalid page distribution is uniform in Fig.~\ref{fig:tpcc_op_10}, with DoIPD of 2.16. This leads to a higher WAF of 5.12 due to increased GC at lower OPS.
+
+For MSR prxy with 25\% OPS, invalid pages are clustered in Fig.~\ref{fig:prxy_op_25}, with DoIPD of 25.45. This clustering minimizes GC overhead, leading to low WAF of 1.008~\ref{fig:real_workload_analysis}, but results in poor wear-leveling. For MSR prxy with 10\% OPS, invalid pages are more evenly distributed in Fig.~\ref{fig:prxy_op_10}, with DoIPD of 2.45. This enhances wear-leveling but increases WAF to 5.6~\ref{fig:real_workload_analysis} due to frequent GC.
+
+This analysis highlights a clear trade-off: clustering reduces GC overhead and lowers WAF but worsens wear-leveling, while uniform distribution improves wear-leveling but increases GC and WAF.
+
+\subsection{WORKLOAD CHARACTERIZATION AND MAPPING}
+\label{subsec:mapping}
+Simulator \eyanassdsim uses each real-world workload trace to analyse and determine its underlying access characteristics. For each trace file, \eyanassdsim continuously monitors the sequence of logical block addresses (LBAs) and classifies them into uniform random, sequential or Zipf patterns. For example, in a sequential pattern, LBAs are written in strictly increasing order, indicating sequential writes, which is typical of logging or streaming data. In a uniform random pattern, LBAs are uniformly distributed across the entire address space, with each block having an equal probability of being written. In contrast, a Zipf distribution pattern follows an asymmetrical distribution, with a small subset of active areas (LBAs) receiving most writes, indicating strong data locality.
+In addition to these patterns, we also observed a fourth category, referred to as an irregular random pattern. In this pattern, the LBAs exhibit stochastic write behaviour that does not conform to the aforementioned patterns. The accesses are irregular and dispersed across the address space, but without clear locality or hot\slash cold regions\cite{hot-cold}.
+To quantitatively represent the contribution of each access pattern in a given trace, we introduce a new metric called Workload Similarity Composition (WSC). 
+WSC is defined as the percentage breakdown of uniform random, sequential, Zipf and irregular random accesses observed in the workload Table~\ref{table:similarity_synthetic_realworld}.
+
+Once these access distributions are determined, we compare the four types of workload access ratios for each real-world workload with the synthetic workload profiles generated by \eyanassdsim to find the closest match. 
+In this comparison, we did not consider irregular random patterns, as they do not correspond to any defined synthetic workload profile. We identified this pattern while analyzing the workload behavior. As shown in Table~\ref{table:similarity_synthetic_realworld}, the TPC-C workload closely aligns with the uniform random workload when the OPS is set to 25\%, 20\%, and 15\%. Although the WAF of TPC-C is higher than that of the synthetic uniform random workload, this can be attributed to the presence of high number of unique LBA as mentioned in Table~\ref{table:similarity_synthetic_realworld} and a small proportion of Zipf, sequential, and irregular random patterns within TPC-C, which together result in limited data locality and weak sequential write behaviour. As OPS decreases, both the ratio of irregular random access patterns and the WAFs increase. 
+
+A similar trend is observed for the prxy workload, which exhibits a strong Zipf-like access pattern, leading to a slightly higher WAF with only a marginal difference.
+However, when the OPS is reduced to 15\%, a noticeable increase in WAF occurs for prxy, as shown in Table~\ref{table:similarity_synthetic_realworld}.
+A similar increase in WAF is observed when the OPS is 5\% for the synthetic Zipf pattern. This can be attributed to the fact that prxy has more frequently written LBAs compared to the Zipf pattern; therefore, the active area (where frequently written LBAs are located) is larger in prxy than in Zipf. As illustrated in Fig.~\ref{fig:prxy_op_25} for prxy and Fig.~\ref{fig:zipf_final} for the Zipf data placement layout, the bright-green regions indicate a high number of invalid pages, as indicated by Table~\ref{table:visual_interpretation} and represent the active areas approximately 35\% for prxy and 19\% for Zipf indicating that Zipf has a smaller active area.
+For this reason, a sudden WAF increase occurs at 15\% OPS for prxy and at 5\% OPS for Zipf. 
+
+Another observation when the OPS is reduced, the irregularity in data placement increases for the prxy workload, as demonstrated in Fig.~\ref{fig:cluster_timestemp}. In Fig.~\ref{fig:cluster_timestemp_w0} (initial state, with 5\% OPS), the SSD is initially fully written(tick signed) except for the OPS-reserved region. After the OPS space is written shown in Fig.~\ref{fig:cluster_timestemp_w5}, we can see that invalid pages are mostly concentrated in the 5\% OPS region, referred to as the active area.
+When 40\% of the workload write requests are completed shown in Fig.~\ref{fig:cluster_timestemp_w40}, the active area becomes darker, indicating that invalid pages are now distributed throughout the SSD. At 60\% workload completion shown in Fig.~\ref{fig:cluster_timestemp_w60}, the active regions get even more darker, and some blocks appear completely dark, meaning that almost all pages in those blocks are valid. At this stage, WAF starts to increase, as invalid pages are distributed irregularly over a wider area. Finally, when the full workload has been written shwon in Fig.~\ref{fig:cluster_timestemp_w100}, almost no distinct active area remains. In summary, invalid LBAs become irregularly distributed referred to as irregular random for all workloads when OPS is reduced. To compare the effect of OPS size, by comparing data placement layout 10\% OPS in Fig.~\ref{fig:prxy_op_10} with OPS 25\% in Fig.~\ref{fig:prxy_op_25}, we observe that a large OPS accommodates all active LBAs and suppresses the increase in WAF. This phenomenon occurs because the size of the OPS directly determines how many hot LBAs can be kept within a confined active area. 
+When the OPS is sufficiently large (e.g., OPS 25\% in Fig.~\ref{fig:prxy_op_25}), the garbage collector can repeatedly reuse the reserved blocks for all hot LBAs, keeping invalid pages highly concentrated in a small bright-green region and maintaining excellent data locality. In contrast, with only 10\% OPS Fig.~\ref{fig:prxy_op_10}, the reserved space is no longer large enough to absorb all updates from the hottest LBAs. Once the active area overflows the OPS region, new versions of hot data must be written to previously cold blocks outside the original active area. 
+This forces the garbage collector to scatter invalid pages across a much larger portion of the SSD, rapidly transforming the original localized (Zipf-like or sequential-like) access pattern into a diffuse irregular random pattern. 
+Consequently, victim blocks selected for GC now contain far fewer invalid pages, dramatically increasing valid-page migration and therefore causing the sharp rise in WAF that is visible in Table~7 for both real-world traces and the synthetic Zipf workload at low OPS values. In addition, the increasing ratio of irregular random depends on the OPS size and workload type. For TPC-C, it increases gradually, whereas for prxy and Zipf, irregular random increases sharply depending on the number of frequently accessed LBAs.
+
+By mapping real-world traces to synthetic traces, if we can determine what synthetic workload pattern (uniform random, irregular random, sequential or Zipf) a real-world trace most closely follows, then we can apply or tune existing SSD firmware policies (GC policies, allocation policies, OPS, etc.) that are already known to perform best for that pattern. For example, if your proxy workload behaves like a Zipf distribution, you can improve the performance and endurance of your proxy workload through firmware optimisations designed for Zipf workloads, such as proper OPS size, adaptive hot\slash cold region management\cite{hot-cold} or zone-based allocation\cite{zone-ssd}\cite{zonedssd-atc21}. Consistent with this approach, for optimization of prxy workload increasing the OPS from 20\% to 25\% yields only limited improvement in WAF, as shown in Fig.~\ref{fig:real_workload_analysis} and Table~\ref{table:similarity_synthetic_realworld}, because writes remain concentrated within compact hot\slash cold regions\cite{hot-cold}; beyond a modest level, additional OPS provides diminishing returns. 
+This indicates that maintaining an OPS of 20\% instead of 25\% can save up to 5\% of SSD space without significantly affecting WAF.
+
+\begin{table}
+ \centering
+ \caption{ Validation of similarity between real-world and synthetic workloads using access patterns and WAF. (TPC-C, UR, prxy, and Zipf have 362K, 284K, 148K, and 108K unique LBAs, respectively)}
+ \label{table:similarity_synthetic_realworld}
+ \begin{tabular}{|p{.9cm}|p{.35cm}|p{.35cm}|p{.35cm}|p{.35cm}|p{.9cm}|p{.8cm}|p{.8cm}|}
+ \hline
+ \textbf{WL (OPS\%)} & \textbf{UR (\%)} & \textbf{IR (\%)} & \textbf{SQ (\%)} & \textbf{ZF (\%)} & \textbf{Closest Synth.} & \textbf{OBS WAF} & \textbf{Synth. WAF} \\
+ \hline
+ TPC-C (25\%) & 75.3 & 10.2 & 2.4 & 12.1 & UR & 2.3 & 1.26\\
+ \hline
+ TPC-C (20\%) & 68.7 & 19.4 & 2.5 & 9.3 & UR & 2.84 & 1.41\\
+ \hline
+ TPC-C (15\%) & 62.3 & 29.2 & 1.9 & 7.5 & UR & 3.66 & 1.82\\
+ \hline
+ TPC-C (10\%) & 50.3 & 43.9 & 1.1 & 4.7 & UR & 5.12 & 2.58\\
+ \hline
+ TPC-C (5\%) & 36.2 & 62.2 & 0.5 & 1.1 & UR & 8.21 & 4.13\\
+ \hline
+ prxy (25\%) & 11.9 & 8.1 & 1.5 & 78.2 & Zipf & 1.008 & 1.004\\
+ \hline
+ prxy (20\%) & 9.7 & 13.5 & 1.5 & 75.3 & Zipf & 1.071 & 1.03\\
+ \hline
+ prxy (15\%) & 6.4 & 50.9 & 1.5 & 41.2 & Zipf & 3.43 & 1.05\\
+ \hline
+ prxy (10\%) & 5.7 & 83.6 & 1.3 & 9.4 & Zipf & 5.06 & 1.07\\
+ \hline
+ prxy (5\%) & 4.2 & 89.8 & 0.7 & 5.3 & Zipf & 10.13 & 4.14\\
+ \hline
+ \end{tabular}
+ WL: Workload,
+ OPS: Over-provisioning space,
+ UR: Uniform Random,
+ IR: Irregular Random,
+ SQ: Sequential,
+ ZF: Zipf,
+ Synth.: Synthetic,
+ OBS: Observed,
+ UQ: Unique
+\end{table}
+
+\begin{figure}[h]
+ \centering
+ \subfloat[0\%]{
+ \includegraphics[width=0.15\linewidth, height=4cm]{fig/cluster_timestemp1.png}
+ \label{fig:cluster_timestemp_w0}
+ }
+ \subfloat[2.5\%]{
+ \includegraphics[width=0.15\linewidth, height=4cm]{fig/cluster_timestemp2.png}
+ \label{fig:cluster_timestemp_w5}
+ }
+ \subfloat[40\%]{
+ \includegraphics[width=0.15\linewidth, height=4cm]{fig/cluster_timestemp3.png}
+ \label{fig:cluster_timestemp_w40}
+ }
+ \subfloat[60\%]{
+ \includegraphics[width=0.15\linewidth, height=4cm]{fig/cluster_timestemp4.png}
+ \label{fig:cluster_timestemp_w60}
+ }
+ \subfloat[100\%]{
+ \includegraphics[width=0.15\linewidth, height=4cm]{fig/cluster_timestemp5.png}
+ \label{fig:cluster_timestemp_w100}
+ }
+
+ \caption{Time-series visualization of SSD block states during MSR prxy workload execution with 5\% OPS, showing progression from initial state (0\%) to completion (100\%). Demonstrates how invalid pages gradually spread from OPS-reserved region to entire SSD, causing WAF increase. (The darkest green block: the most valid pages, the brightest green: the most invalid pages, cross-signed blocks: fully invalid, and tick-signed: fully valid)}
+ \label{fig:cluster_timestemp}
+\end{figure}
+
+\subsection{Lessons Learned and Key Insights}
+From our comprehensive analysis using \eyanassdsim, several key insights emerge regarding SSD behaviour under diverse workloads and allocation strategies. The summarized results are presented in Table~\ref{table:all_figure_analysis}, which highlights each figure's observations, implications, and corresponding benefits.
+
+In Table~\ref{table:all_figure_analysis}, No.1 - Visual tracking of data placement and movement provides a clear understanding of how different workload patterns influence internal SSD operations. The simulator reveals that Zipf workloads exhibit low WAF due to strong locality but suffer from uneven wear-leveling, whereas uniform random workloads achieve better wear-leveling at the cost of higher WAF. Sequential workloads strike a balance between these two extremes, showing predictable GC behaviour and consistent endurance performance. The visualization also helps identify hot and cold regions, enabling comparison of real workloads with their closest synthetic counterparts described in Section \ref{subsec:mapping}.
+
+In Table~\ref{table:all_figure_analysis}, No.2 - Fourier analysis of erase-count amplitudes uncovers hidden periodic wear-leveling patterns, offering a new diagnostic perspective for evaluating allocation policies. Certain strategies (e.g., S1/S4) perform best under sequential workloads, while others (e.g., S3/S5) demonstrate advantages under random or Zipf-like patterns, emphasising the workload dependence of optimal allocation design.
+
+In Table~\ref{table:all_figure_analysis}, No.3 - Analysis of valid and invalid page distributions in real workloads such as TPC-C and prxy reveals a trade-off between GC efficiency and wear-leveling uniformity. High clustering of invalid pages accelerates GC but may compromise wear-leveling balance, whereas more uniform invalid-page distributions improve endurance but increase WAF. In the case of Zipf-like behaviour, the access pattern is highly asymmetrical, with a small subset of active LBAs receiving the majority of writes. Consequently, increasing OPS from 20\% to 25\% yields limited improvement in WAF given in Fig.~\ref{fig:data_placement_real_data} because writes remain concentrated in those compact hot regions; beyond a modest level, additional OPS provides diminishing returns. In our experiments, this localization suggests that modest OPS values can be near-optimal for space efficiency while still containing WAF growth.
+
+In Table~\ref{table:all_figure_analysis}, No.4 - Visualisation of valid and invalid page layouts for real workloads helps identify hot and cold\cite{hot-cold} regions and match them with their closest synthetic workloads. By mapping real traces to these representative patterns, \eyanassdsim enables the application of well-established firmware algorithms tailored to each workload type, facilitating more accurate and workload-aware firmware tuning.
+
+Overall, \eyanassdsim transforms SSD research into an interactive, interpretable, and data-driven process, empowering researchers and practitioners to visualise internal operations, detect inefficiencies, and optimise firmware behaviour in real time.
+\begin{table}
+ \centering
+ \caption{Summary of Figures: Observations, Implications, Insights, and Benefits}
+ \label{table:all_figure_analysis}
+ \begin{tabular}{|p{0.19cm}|p{0.3cm}|p{1.4cm}|p{1cm}|p{1.8cm}|p{1.2cm}|}
+ \hline
+ \textbf{No.} & \textbf{ Fig.} & \textbf{ What It Shows} & \textbf{ Implica-tions} & \textbf{ Key Insights} & \textbf{ Benefit} \\
+ \hline
+ 1 & Fig. ~\ref{fig:seq_initial}-\ref{fig:zipf_final} & Data placement at GC threshold and after workload & Page validity during/after GC & Zipf: low WAF; Seq: balanced; Uniform: better wear-leveling and high WAF & Visualize workload impact on GC, WAF and wear-leveling \\
+ \hline
+ 2 & Fig. ~\ref{fig:s1s2} & Fourier transform of erase counts & Hidden periodic wear-leveling patterns & S1/S4 best for sequential; S3 best for Zipf; S5 best for uniform random & Compare allocation policy efficiency \\
+ \hline
+ 3 & Fig. ~\ref{fig:real_workload_analysis}& Invalid page distribution (TPC-C and prxy with OPS 10\% and 25\%) & Effect on WAF and GC & High DoIPD: better GC; low DoIPD: better wear-leveling & Trade-off: performance vs. endurance \\
+ \hline
+ 4 & Fig. ~\ref{fig:tpcc_op_25}-\ref{fig:prxy_op_10} & Layouts of valid/invalid pages & Compare data clustering across workloads & Clustering: helps GC but hurts wear-leveling; Uniformity: helps wear-leveling but raises WAF & Demons-trates OPS impact in real workloads \\
+ \hline
+ \end{tabular}
+\end{table}
+
+\section{Performance Validation}
+\label{performance_validation}
+
+The validation of \eyanassdsim is demonstrated through a comparative analysis of the WAF against \ftlsim~\cite{FTLSim-ACM-2017} and \femu~\cite{FEMU-FAST-18}, and read latency against \femu.
+
+The simulation configuration is the same as Table~\ref{table:devicespecification}, with 10\% OPS for \ftlsim comparison and 25\% OPS for \femu.
+~\ref{fig:waf_comparison} 
+
+The differences in WAF values between \eyanassdsim and \ftlsim can be attributed to the LSB (Least Significant Bit) backup pages used in \ftlsim. This backup mechanism in \ftlsim influences the GC behaviour, leading to higher WAF.
+
+ We tested our workloads using \femu with 25\% OPS~\cite{FEMU_Blackbox_2024}. The results for \eyanassdsim and \femu show some differences in WAF values. \femu employs a queueing-based FIFO strategy for GC, whereas \eyanassdsim follows a greedy policy.
+
+ The overall similarity in trends suggests that \eyanassdsim performs similarly to \ftlsim and \femu, thereby validating its effectiveness. To evaluate the read performance of \eyanassdsim, we compared its latency results with \femu. As shown in Fig.~\ref{fig:latency_comparison}, \eyanassdsim shows a maximum read latency of 510~\text{ms}, lower than \femu's 560~\text{ms}. The average latency of \eyanassdsim is 3.921~\text{ms}, which closely matches \femu's 3.758~\text{ms}. 
+
+\begin{figure}
+ \centering
+ \includegraphics[width=\linewidth, height=3.8cm]{fig/latency_comparison_femu_vs_eyana.png}
+ \caption{Read latency distribution comparing \eyanassdsim and \femu, showing maximum latency (510ms vs 560ms) and average latency (3.921ms vs 3.758ms). The similar latency patterns validate \eyanassdsim's timing accuracy}
+ \label{fig:latency_comparison}
+\end{figure}
+
+\begin{figure}
+ \centering
+ \includegraphics[width=\linewidth, height=3.8cm]{fig/waf_comparison_workloads_10_25.png}
+ \caption{WAF comparison across sequential, uniform random, Zipf, TPC-C, and prxy workloads for \eyanassdsim, \ftlsim (10\% OPS), and \femu (25\% OPS). Similar trends across simulators validate \eyanassdsim's WAF calculation accuracy}
+ \label{fig:waf_comparison}
+\end{figure}
+
+\section{DISCUSSION AND IMPLICATION}
+\label{discussion_and_implication}
+\eyanassdsim is not limited to traditional SSD analysis-it also provides a foundation for exploring emerging storage technologies. Its visualisation capabilities can be extended to support Zoned Storage (ZNS) by tracking per-zone operations. For Flexible Data Placement (FDP), \eyanassdsim enables visualisation of how host placement hints affect physical layout. \eyanassdsim can function as a digital twin~\cite{digital_twin} for SSD subsystems by replicating their structure, behavior, and workload interactions. ~\cite{digital_twin} These strengths position \eyanassdsim as a versatile tool for research and educational purposes.
+
+\section{Survey Result}
+\label{survey_result}
+We conducted a survey targeting students and professionals in computer engineering to gather feedback on our simulators. A total of 1,011 participants participated, providing insight through multiple-choice and open-ended responses. 95\% of users expressed satisfaction with the simulators. 97\% reported that the simulators reduced their learning time.
+
+\section{CONCLUSION}
+\label{conclusion}
+We proposed a web-based SSD simulator, \eyanassdsim, that constructs a visualizable storage stack and models characteristics of SSD internal hardware and software. This simulator serves educational, analytical and research purposes.
+
+\begin{comment}
+\section*{Acknowledgment}
+The preferred spelling of the word ``acknowledgment'' in American English is 
+without an ``e'' after the ``g.'' Use the singular heading even if you have 
+many acknowledgments. Avoid expressions such as ``One of us (S.B.A.) would 
+like to thank $\ldots$.'' Instead, write ``F. A. Author thanks $\ldots$.'' In most 
+cases, sponsor and financial support acknowledgments are placed in the 
+unnumbered footnote on the first page, not here.
+\end{comment}
+
+% \bibliographystyle{unsrt}
+\bibliographystyle{IEEEtran} % Use the appropriate style (e.g., IEEE, APA, etc.)
+\bibliography{ssdsim} % Name of the.bib file (without the.bib extension)
+
+% \begin{comment}
+\begin{IEEEbiography}[{\includegraphics[width=1in,height=1.25in, clip,keepaspectratio]{fig/authors/habib.jpg}}]{Habibur Rahman} received his Bachelor's degree in Computer Science and Engineering from Daffodil International University, Bangladesh, in 2019, where he was among the top three students. He then pursued a Master's degree in AI Convergence Engineering at Gyeongsang National University, South Korea. His major fields of study include artificial intelligence, solid-state drives, and system engineering.
+
+He worked as a Software Engineer at ResPay, Dallas, Texas, USA, from 2018 to 2019, leading the development of the ResPay application. From 2019 to 2023, he served as a Software Engineer at Daffodil International University.
+
+Habibur is an expert in C, Python, JavaScript, cloud technologies and remains
+an active contributor to open-source projects.
+\end{IEEEbiography}
+
+% \begin{comment}
+\begin{IEEEbiography}[{\includegraphics[width=1in,height=1.30in, clip,keepaspectratio]{fig/authors/omar_faroque.jpg}}]{Omar Faroque} is a Software Engineer at Meta, specialising in high-performance computing, distributed systems, and cloud infrastructure. With over 15 years of experience, he has worked at Amazon Web Services (AWS) and Apple, contributing to Big Data engineering, AI infrastructure, and IoT solutions.
+
+He holds an M.S. in Electrical and Computer Engineering from Southern Illinois University, Carbondale, and has received notable accolades, including 2nd place in the MOBI Grand Challenge (2019) and the Greater Chicago Area Android Wear Hackathon Champion (2015).
+
+Omar is an expert in Java, Go, Python, and cloud technologies and remains an active contributor to open-source projects.
+\end{IEEEbiography}
+
+\begin{IEEEbiography}[{\includegraphics[width=1in, height=1.25in, clip, keepaspectratio]{fig/authors/moonseok.jpg}}]{CHOI MOON SEOK} received his Bachelor's degree in Aerospace and Software Engineering from Gyeongsang National University, Korea. Since March 2024, He has been a Master's student at Department of AI Convergence Engineering from Gyeongsang National University, Korea. He is interested in storage, embedded software and operating systems.
+\end{IEEEbiography}
+
+\begin{IEEEbiography}[{\includegraphics[width=1in,height=1.25in,clip,keepaspectratio]{fig/authors/jaehokim.jpeg}}]{Jaeho Kim} is an Associate Professor in the Department of Software Engineering at Gyeongsang National University (GNU). Before joining GNU, I was a senior research engineer at Huawei Technologies in Germany from November 2019 to August 2020. I was a postdoctoral researcher at the Department of Electrical and Computer Engineering of Virginia Tech from October 2017 to October 2019 and Ulsan National Institute of Science and Technology (UNIST) from October 2015 to September 2017. I received the PhD degree from the School of Computer Science, University of Seoul, Korea in 2015.
+\end{IEEEbiography}
+
+% \end{comment}
+\EOD
+
+\end{document}
