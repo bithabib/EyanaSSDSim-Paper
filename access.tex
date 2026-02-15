@@ -35,12 +35,8 @@ Commerce under Grant BS123456.''}
 
 \corresp{Corresponding author: Jaeho Kim (e-mail: jaeho.kim@gnu.ac.kr).}
 \begin{abstract}
-Massive block I/O systems serve as the backbone of many of today's critical applications, including financial trading platforms, data streaming platforms, cloud storage, and social media platforms. 
-Since these applications involve data-intensive operations, the performance of the data storage system directly affects the user experience.
-The scale and complexity of the applications workloads make it challenging to identify and resolve issues when they arise. Visualization plays a key role in uncovering workload patterns and enhancing our understanding.
-
-\sout{This work introduces} \eyanassdsim\sout{, a web-based SSD simulator designed to analyze and visualize the internal workings of NAND flash-based SSDs. Drawing from experience in analyzing and visualizing applications workloads, }\eyanassdsim \sout{provides visual and quantitative insight into workload patterns and data placement relationships and their impact on storage performance and lifespan.
-Our simulator visually provides the process of how the workload is processed inside SSDs, enabling various analyses through it.}
+Storage systems serve as the backbone of today's data-intensive applications, such as financial trading and cloud services, where storage behavior directly impacts user experience. However, the complexity of modern workloads makes it difficult to identify and analyze issues regarding performance and wear-leveling.  While visualization is essential for such analysis, existing SSD simulators rarely provide this capability, hindering in-depth research.
+To address this, we introduce EynanaSSD, a web-based simulator that visualizes internal operations and data placement for intuitive performance and wear-leveling analysis.
 
 \eyanassdsim \sout{enables real-time tracking of data movement, invalidation, and erasure, supporting trace uploads for custom analysis. It provides workload characterization by detecting patterns like sequentiality, randomness, and transitions (e.g., from sequential to random writes), and maps real-world traces to closest synthetic patterns (e.g., sequential, uniform random, Zipf) for optimizations like adaptive GC or allocation tuning.}
 
