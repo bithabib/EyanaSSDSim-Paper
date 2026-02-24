@@ -35,11 +35,11 @@
 \providecommand*\caption@xref[2]{\@setref\relax\@undefined{#1}}
 \newlabel{table:features}{{1}{3}{Comparison of \eyanassdsim features with other simulators in terms of inner workings and visualization}{table.caption.1}{}}
 \@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {III-A}}Comprehensive Firmware Simulation}{3}{subsection.3.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {\mbox  {III-A}1}SSD Setup and Host Interface Layer}{3}{subsubsection.3.1.1}\protected@file@percent }
 \@writefile{lof}{\contentsline {figure}{\numberline {1}{\ignorespaces \texthl  {High-level architecture of} \mbox  {\texttt  {EyanaSSDSim}}\xspace  \texthl  {, showing the data flow from host interface through Flash Translation Layer (FTL) and Allocation Scheme Layer (ASL) to NAND flash memory, including garbage collection (GC) and TRIM operations}}}{4}{figure.caption.3}\protected@file@percent }
 \newlabel{fig:highlevelview}{{1}{4}{\hl {High-level architecture of} \eyanassdsim \hl {, showing the data flow from host interface through Flash Translation Layer (FTL) and Allocation Scheme Layer (ASL) to NAND flash memory, including garbage collection (GC) and TRIM operations}}{figure.caption.3}{}}
 \@writefile{lot}{\contentsline {table}{\numberline {2}{\ignorespaces NAND flash specifications of \mbox  {\texttt  {EyanaSSDSim}}\xspace  }}{4}{table.caption.2}\protected@file@percent }
 \newlabel{table:devicespecification}{{2}{4}{NAND flash specifications of \eyanassdsim }{table.caption.2}{}}
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {\mbox  {III-A}1}SSD Setup and Host Interface Layer}{4}{subsubsection.3.1.1}\protected@file@percent }
 \@writefile{toc}{\contentsline {subsubsection}{\numberline {\mbox  {III-A}2}Flash Translation Layer}{4}{subsubsection.3.1.2}\protected@file@percent }
 \@writefile{lof}{\contentsline {figure}{\numberline {2}{\ignorespaces \texthl  {Web interface of the basic SSD simulator showing user controls for I/O operations, allocation scheme selection, and real-time visualization of write count (WC), read count (RC), erase count (EC), and WAF metrics}}}{4}{figure.caption.4}\protected@file@percent }
 \newlabel{fig:basic_ssd}{{2}{4}{\hl {Web interface of the basic SSD simulator showing user controls for I/O operations, allocation scheme selection, and real-time visualization of write count (WC), read count (RC), erase count (EC), and WAF metrics}}{figure.caption.4}{}}
@@ -51,12 +51,12 @@
 \newlabel{table:s1example}{{4}{5}{Examples of S1 Allocation Scheme}{table.caption.6}{}}
 \@writefile{toc}{\contentsline {section}{\numberline {IV}Full System Evaluation}{5}{section.4}\protected@file@percent }
 \newlabel{full_system_evaluation}{{IV}{5}{Full System Evaluation}{section.4}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {IV-A}}Visual Interpretation Guidance}{5}{subsection.4.1}\protected@file@percent }
 \citation{kernel}
 \@writefile{lot}{\contentsline {table}{\numberline {5}{\ignorespaces \texthl  {Summary of mathematical notations used in this paper}}}{6}{table.caption.7}\protected@file@percent }
 \newlabel{table:math_notations}{{5}{6}{\hl {Summary of mathematical notations used in this paper}}{table.caption.7}{}}
 \@writefile{lot}{\contentsline {table}{\numberline {6}{\ignorespaces Legend for block color and symbol representation in visualizations}}{6}{table.caption.8}\protected@file@percent }
 \newlabel{table:visual_interpretation}{{6}{6}{Legend for block color and symbol representation in visualizations}{table.caption.8}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {IV-A}}Visual Interpretation Guidance}{6}{subsection.4.1}\protected@file@percent }
 \@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {IV-B}}Comparison of Data Placement for Different Workloads}{6}{subsection.4.2}\protected@file@percent }
 \newlabel{subsec:ComparisonDataPlacement}{{\mbox  {IV-B}}{6}{Comparison of Data Placement for Different Workloads}{subsection.4.2}{}}
 \@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {IV-C}}Impact of OPS on WAF for Various Workloads}{7}{subsection.4.3}\protected@file@percent }
@@ -65,10 +65,10 @@
 \newlabel{analysis_of_the_Simulation_Results}{{V}{7}{Analysis of the Simulation Results}{section.5}{}}
 \@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {V-A}}Analysis of Relationship between WAF and Invalid Page Distribution}{7}{subsection.5.1}\protected@file@percent }
 \newlabel{subsec:InvalidPagesPatterns}{{\mbox  {V-A}}{7}{Analysis of Relationship between WAF and Invalid Page Distribution}{subsection.5.1}{}}
-\newlabel{eq:doipd}{{1}{7}{Analysis of Relationship between WAF and Invalid Page Distribution}{equation.5.1}{}}
+\newlabel{eq:doipd}{{1}{7}{Analysis of Relationship between WAF and Invalid Page Distribution}{equation.1}{}}
 \@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {V-B}}Analyzing Wear-leveling for Various Workloads}{7}{subsection.5.2}\protected@file@percent }
 \newlabel{subsec:EraseCountDistribution}{{\mbox  {V-B}}{7}{Analyzing Wear-leveling for Various Workloads}{subsection.5.2}{}}
-\newlabel{eq:doec}{{2}{7}{Analyzing Wear-leveling for Various Workloads}{equation.5.2}{}}
+\newlabel{eq:doec}{{2}{7}{Analyzing Wear-leveling for Various Workloads}{equation.2}{}}
 \newlabel{fig:seq_initial}{{3a}{8}{Subfigure 3a}{subfigure.3.1}{}}
 \newlabel{sub@fig:seq_initial}{{(a)}{a}{Subfigure 3a\relax }{subfigure.3.1}{}}
 \newlabel{fig:random_initial}{{3b}{8}{Subfigure 3b}{subfigure.3.2}{}}
@@ -100,11 +100,11 @@
 \newlabel{fig:erasecount}{{6}{9}{\hl {Histogram of erase count distribution per block with bell curves for sequential, uniform random, and Zipf workloads. Lower mean ($\mu $) and DoEC indicate better wear-leveling; sequential workload achieves the most uniform wear distribution}}{figure.caption.12}{}}
 \@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {V-C}}Fourier Transform Insights: Wear Leveling Performance Comparison between Different Allocation Schemes}{9}{subsection.5.3}\protected@file@percent }
 \newlabel{subsec:FourierTransform}{{\mbox  {V-C}}{9}{Fourier Transform Insights: Wear Leveling Performance Comparison between Different Allocation Schemes}{subsection.5.3}{}}
+\newlabel{eq:degree_of_amplitude}{{3}{9}{Fourier Transform Insights: Wear Leveling Performance Comparison between Different Allocation Schemes}{equation.3}{}}
 \@writefile{lof}{\contentsline {figure}{\numberline {7}{\ignorespaces \texthl  {Heatmap comparing standard deviation of Fourier Transform amplitudes ($\sigma _A$) across five allocation policies (S1-S5) for sequential, uniform random, and Zipf workloads. Lower values (darker colors) indicate better wear-leveling performance}}}{9}{figure.caption.13}\protected@file@percent }
 \newlabel{fig:allocation_policy_compare_fft}{{7}{9}{\hl {Heatmap comparing standard deviation of Fourier Transform amplitudes ($\sigma _A$) across five allocation policies (S1-S5) for sequential, uniform random, and Zipf workloads. Lower values (darker colors) indicate better wear-leveling performance}}{figure.caption.13}{}}
 \@writefile{lof}{\contentsline {figure}{\numberline {8}{\ignorespaces \texthl  {Fourier Transform amplitude spectra of erase counts for sequential, uniform random, and Zipf workloads. X-axis shows frequency (block variation rate), Y-axis shows amplitude magnitude. Zipf exhibits highest peaks indicating concentrated erasures on specific blocks}}}{9}{figure.caption.14}\protected@file@percent }
 \newlabel{fig:s1s2}{{8}{9}{\hl {Fourier Transform amplitude spectra of erase counts for sequential, uniform random, and Zipf workloads. X-axis shows frequency (block variation rate), Y-axis shows amplitude magnitude. Zipf exhibits highest peaks indicating concentrated erasures on specific blocks}}{figure.caption.14}{}}
-\newlabel{eq:degree_of_amplitude}{{3}{9}{Fourier Transform Insights: Wear Leveling Performance Comparison between Different Allocation Schemes}{equation.5.3}{}}
 \citation{tpc-c,tpcc-ieee-ex}
 \citation{write_off_loading}
 \citation{EnablingCostEffective,write_off_loading}
@@ -173,6 +173,7 @@
 \bibcite{Over-Provisioning-IEEE22}{6}
 \bibcite{MQSim-USENIX18}{7}
 \bibcite{SSDModel-USENIX-TC-08}{8}
+\bibcite{SSDSim-ICS-11}{9}
 \@writefile{lof}{\contentsline {figure}{\numberline {11}{\ignorespaces \texthl  {Read latency distribution comparing} \mbox  {\texttt  {EyanaSSDSim}}\xspace  \texthl  {and} \mbox  {\texttt  {FEMU}}\xspace  \texthl  {, showing maximum latency (510ms vs 560ms) and average latency (3.921ms vs 3.758ms). The similar latency patterns validate} \mbox  {\texttt  {EyanaSSDSim}}\xspace  \texthl  {'s timing accuracy}}}{14}{figure.caption.19}\protected@file@percent }
 \newlabel{fig:latency_comparison}{{11}{14}{\hl {Read latency distribution comparing} \eyanassdsim \hl {and} \femu \hl {, showing maximum latency (510ms vs 560ms) and average latency (3.921ms vs 3.758ms). The similar latency patterns validate} \eyanassdsim \hl {'s timing accuracy}}{figure.caption.19}{}}
 \@writefile{lof}{\contentsline {figure}{\numberline {12}{\ignorespaces \texthl  {WAF comparison across sequential, uniform random, Zipf, TPC-C, and prxy workloads for} \mbox  {\texttt  {EyanaSSDSim}}\xspace  \texthl  {,} \mbox  {\texttt  {FTLSim}}\xspace  \texthl  {(10\% OPS), and} \mbox  {\texttt  {FEMU}}\xspace  \texthl  {(25\% OPS). Similar trends across simulators validate} \mbox  {\texttt  {EyanaSSDSim}}\xspace  \texthl  {'s WAF calculation accuracy}}}{14}{figure.caption.20}\protected@file@percent }
@@ -184,7 +185,6 @@
 \@writefile{toc}{\contentsline {section}{\numberline {IX}CONCLUSION}{14}{section.9}\protected@file@percent }
 \newlabel{conclusion}{{IX}{14}{CONCLUSION}{section.9}{}}
 \@writefile{toc}{\contentsline {section}{REFERENCES}{14}{section*.21}\protected@file@percent }
-\bibcite{SSDSim-ICS-11}{9}
 \bibcite{NANDFlashSim-TOS-16}{10}
 \bibcite{VSSIM-MSST-13}{11}
 \bibcite{WiscSim-EuroSys-17}{12}
@@ -210,6 +210,6 @@
 \bibcite{digital_twin}{32}
 \@writefile{toc}{\contentsline {subsection}{Habibur Rahman}{15}{section*.22}\protected@file@percent }
 \@writefile{toc}{\contentsline {subsection}{Omar Faroque}{15}{section*.22}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{CHOI MOON SEOK}{16}{section*.22}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{CHOI MOON SEOK}{15}{section*.22}\protected@file@percent }
 \@writefile{toc}{\contentsline {subsection}{Jaeho Kim}{16}{section*.22}\protected@file@percent }
 \gdef \@abspage@last{16}

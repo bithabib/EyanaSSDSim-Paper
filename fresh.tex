@@ -33,9 +33,8 @@ Commerce under Grant BS123456.''}
 
 \corresp{Corresponding author: Jaeho Kim (e-mail: jaeho.kim@gnu.ac.kr).}
 \begin{abstract}
-Massive block I/O systems serve as the backbone of many of today's critical applications, including financial trading platforms, data streaming platforms, cloud storage, and social media platforms. 
-Since these applications involve data-intensive operations, the performance of the data storage system directly affects the user experience.
-The scale and complexity of the applications workloads make it challenging to identify and resolve issues when they arise. Visualization plays a key role in uncovering workload patterns and enhancing our understanding.
+Storage systems serve as the backbone of today's data-intensive applications, such as financial trading and cloud services, where storage behavior directly impacts user experience. However, the complexity of modern workloads makes it difficult to identify and analyze issues regarding performance and wear-leveling.  While visualization is essential for such analysis, existing SSD simulators rarely provide this capability, hindering in-depth research.
+To address this, we introduce EynanaSSD, a web-based simulator that visualizes internal operations and data placement for intuitive performance and wear-leveling analysis.
 
  \eyanassdsim is a web-based SSD simulator that provides real-time visual tracking of internal SSD operations, including data placement, page invalidation, garbage collection, and block erasure. The simulator enables performance analysis through quantitative metrics such as write amplification factor (WAF), wear-leveling distribution, and workload characterization. We validate \eyanassdsim against established simulators (FEMU, FTLSim), demonstrating consistent results. As an accessible, installation-free tool, \eyanassdsim bridges the gap between SSD complexity and comprehension for both research and education.
 
