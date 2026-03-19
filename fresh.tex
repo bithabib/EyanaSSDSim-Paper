@@ -33,10 +33,10 @@ Commerce under Grant BS123456.''}
 
 \corresp{Corresponding author: Jaeho Kim (e-mail: jaeho.kim@gnu.ac.kr).}
 \begin{abstract}
-Storage systems serve as the backbone of today's data-intensive applications, such as financial trading and cloud services, where storage behavior directly impacts user experience. However, the complexity of modern workloads makes it difficult to identify and analyze issues regarding performance and wear-leveling.  While visualization is essential for such analysis, existing SSD simulators rarely provide this capability, hindering in-depth research.
-To address this, we introduce EynanaSSD, a web-based simulator that visualizes internal operations and data placement for intuitive performance and wear-leveling analysis.
+Storage systems serve as the backbone of today's data-intensive applications, such as financial trading and large-scale database systems. In these applications, storage behavior directly impacts user experience. However, the complexity of modern workloads makes it difficult to identify and analyze performance and wear-leveling issues. While visualization is essential for such analysis, existing SSD simulators rarely provide this capability, hindering in-depth research.
+To address this, we introduce \eyanassdsim, a web-based simulator that visualizes internal operations and data placement for intuitive performance and wear-leveling analysis.
 
- \eyanassdsim is a web-based SSD simulator that provides real-time visual tracking of internal SSD operations, including data placement, page invalidation, garbage collection, and block erasure. The simulator enables performance analysis through quantitative metrics such as write amplification factor (WAF), wear-leveling distribution, and workload characterization. We validate \eyanassdsim against established simulators (FEMU, FTLSim), demonstrating consistent results. As an accessible, installation-free tool, \eyanassdsim bridges the gap between SSD complexity and comprehension for both research and education.
+\eyanassdsim provides real-time visual tracking of internal SSD operations, including data placement, page invalidation, garbage collection, and block erasure. The simulator enables performance analysis through quantitative metrics such as write amplification factor (WAF), wear-leveling distribution, and workload access pattern analysis. We validate \eyanassdsim against established simulators (FEMU, FTLSim), demonstrating consistent results. As an accessible, installation-free tool, \eyanassdsim bridges the gap between SSD complexity and user comprehension for both research and education.
 
 \end{abstract}
 
@@ -73,17 +73,22 @@ The major contributions of this paper are as follows:
 \end{itemize}
 % === END NEW TEXT ===
 
-In the remainder of this paper, we introduce related work and comparative study in Section~\ref{subsec:related_work}.
+In the remainder of this paper, we introduce background and related work in Section~\ref{subsec:related_work}.
 The features, architecture, and functionality of our SSD simulator are described in Section~\ref{subsec:navigating_our_ssd_simulator}.
 In Section~\ref{full_system_evaluation}, we showcase the simulator's core capabilities through vivid visualizations of internal SSD operations across representative workloads. Leveraging these visualizations, Section~\ref{analysis_of_the_Simulation_Results} provides in-depth analyses of key phenomena including data placement dynamics, write amplification (WAF), garbage collection (GC) efficiency, and wear-leveling revealing patterns. In Section~\ref{performance_validation}, we validate our simulator against FEMU and FTLSim. Section~\ref{discussion_and_implication} explores broader implications and future enhancements. Section~\ref{survey_result} presents feedback from users of our simulator, and Section~\ref{conclusion} concludes our work.
 Readers are encouraged to explore our on-demand web-based simulator for demonstration purposes\footnote{https://ssd.qbithabib.com}, and the publicly available code\footnote{https://github.com/bithabib/flash\_ssd\_simulator\_web}.
 
-\section{Related Work and Comparative Study}
+\section{Background and Related Work}
 \label{subsec:related_work}
- Most storage products include visualization tools showing throughput and latency over time. What sets our visualizations apart is the ability to display access patterns within the internal SSD blocks. \mqsim~\cite{MQSim-USENIX18} offers features.
-\flashsim~\cite{FlashSim-FICASS-09} provides simulation capabilities. \ssdmodel~\cite{SSDModel-USENIX-TC-08} and other traditional simulators demand significant time for installation. \nandflashsim~\cite{NANDFlashSim-TOS-16}, \vssim~\cite{VSSIM-MSST-13}, \wiscsim~\cite{WiscSim-EuroSys-17}, \ssdplayer~\cite{visualizationSSDPlayer} and \simplessd~\cite{FTLSim-ACM-2017} offer varying functionality and installation complexities. \eyanassdsim distinguishes itself by prioritizing analytical, educational and research-oriented design. \eyanassdsim enhances accessibility and interactivity through on-demand web access, real-time monitoring, and documentation.
 
-Table~\ref{table:features} summarizes the key features of \eyanassdsim and their availability in other simulators. This comparison highlights the gaps in the literature, particularly the lack of real-time visualization and web-based accessibility, which \eyanassdsim addresses. Real-time monitoring and visualization have proven valuable in other domains such as IoT-based monitoring systems~\cite{irrigation-wsn-ieee}, demonstrating the importance of intuitive visual feedback for system analysis.
+\subsection{Background}
+The internal structure of SSDs, including firmware, is becoming increasingly complex as optimization technologies advance to improve performance, lifespan, and energy efficiency. One crucial aspect of these optimizations is data placement, which directly impacts SSD performance and durability. This process is managed by the flash translation layer (FTL), which maps logical addresses to physical locations and governs how data is distributed within the SSD through various allocation policies. Whenever data is updated, the updated data is written to a new clean page, while the previous location is invalidated. To maintain a pool of clean blocks, the garbage collection (GC) process relocates valid pages from partially invalid blocks before erasing them. This requires additional space allocation, known as over-provisioning space (OPS). These internal writes, collectively referred to as write amplification, contribute to data movement within the device. However, accurately quantifying write amplification is not always straightforward and requires a deep understanding of the underlying causes of data movement within a given SSD. These challenges highlight the need for intuitive visualization tools that can expose internal SSD behavior and support deeper analysis of performance and wear-leveling.
+
+\subsection{Related Work}
+Most storage monitoring tools display throughput and latency over time. However, they rarely expose internal SSD behavior such as block-level access patterns or garbage collection activity. Among SSD simulators, \mqsim~\cite{MQSim-USENIX18} supports multiple queue models and provides performance metrics but lacks visual feedback on internal data placement.
+\flashsim~\cite{FlashSim-FICASS-09} offers page-level simulation of flash operations yet does not provide interactive visualization. \ssdmodel~\cite{SSDModel-USENIX-TC-08} and similarly structured simulators often require significant setup time and technical expertise for installation, limiting their accessibility. \nandflashsim~\cite{NANDFlashSim-TOS-16} focuses on detailed NAND-level modeling, while \vssim~\cite{VSSIM-MSST-13} and \wiscsim~\cite{WiscSim-EuroSys-17} target performance evaluation without visualization support. \ssdplayer~\cite{visualizationSSDPlayer} offers block-level data placement visualization but is limited in workload flexibility, real-time interactivity, and web-based accessibility. \simplessd~\cite{SimpleSSD-IEEE18} offers high-fidelity simulation integrated with gem5, prioritizing accuracy over accessibility.
+
+Table~\ref{table:features} summarizes the key features of these simulators alongside \eyanassdsim, highlighting gaps in the literature --- particularly the absence of real-time visualization and web-based accessibility. \eyanassdsim addresses these gaps by prioritizing analytical, educational, and research-oriented design, offering on-demand web access, real-time monitoring, and comprehensive documentation without requiring installation. Notably, real-time visualization has proven valuable in other system domains such as IoT-based monitoring~\cite{irrigation-wsn-ieee}, underscoring the broader importance of intuitive visual feedback for system analysis and comprehension.
 
 \begin{table}
  \centering
@@ -326,7 +331,7 @@ In this section, we show visualizing and analyzing the internal operations that 
 
 We present visualization examples of data movement inside an SSD and introduce performance and wear-leveling analysis models.
 The configuration of the SSD simulator for evaluations is specified by values in parentheses in Table~\ref{table:devicespecification}.
-In this evaluation, we use three workloads: sequential, uniform random, and Zipf with a total request volume of 5.03GB, 4KB write requests, and 80\% valid blocks of the SSD capacity.
+In this evaluation, we use three workloads: sequential, uniform random, and Zipf with a total request volume of 5.03GB, 4KB write requests, and 80\% valid blocks of the SSD capacity. \eyanassdsim is a deterministic simulator --- given the same input workload and configuration, it produces identical results across multiple runs, as it follows fixed algorithms for page allocation, garbage collection, and wear-leveling without any randomized components. Therefore, all results shown in this section represent single deterministic runs, and standard deviation bars are not applicable.
 
 \textbf{Implementation and System Configuration:} \eyanassdsim is implemented as a web-based application using Python (Flask framework) for the backend simulation engine and JavaScript for the frontend visualization interface. The simulator runs on a server with an Intel Xeon E5-2680 v4 processor (2.40GHz, 14 cores), 64GB RAM, and Ubuntu 20.04 LTS. The web interface is accessible via standard web browsers (Chrome, Firefox, Safari) without requiring any client-side installation. All experiments were conducted by executing workloads through the simulator's web interface, with results automatically logged and exported for analysis.
 
@@ -338,72 +343,6 @@ In this evaluation, we use three workloads: sequential, uniform random, and Zipf
  \item \textbf{Workload Similarity Composition (WSC):} Percentage-based metric classifying real-world traces into synthetic workload patterns.
 \end{itemize}
 
-Table~\ref{table:math_notations} provides a comprehensive summary of all mathematical notations used throughout this paper.
-
-\begin{table}[h]
- \centering
- \caption{Summary of mathematical notations used in this paper}
- \label{table:math_notations}
- \begin{tabular}{|p{1.5cm}|p{6cm}|}
- \hline
- \textbf{Symbol} & \textbf{Definition} \\
- \hline
- \multicolumn{2}{|c|}{\textit{General SSD Parameters}} \\
- \hline
- $n$ & Total number of blocks in the SSD \\
- \hline
- $N$ & Length of sequence (number of data points) in Fourier Transform \\
- \hline
- LPN & Logical Page Number \\
- \hline
- PPN & Physical Page Number \\
- \hline
- LBA & Logical Block Address \\
- \hline
- \multicolumn{2}{|c|}{\textit{Invalid Page Distribution (DoIPD)}} \\
- \hline
- $I_i$ & Number of invalid pages in block $i$ \\
- \hline
- $\mu_I$ & Mean number of invalid pages per block: $\mu_I = \frac{1}{n}\sum_{i=1}^{n} I_i$ \\
- \hline
- DoIPD & Degree of Invalid Page Distribution (std. dev. of invalid pages) \\
- \hline
- \multicolumn{2}{|c|}{\textit{Erase Count Distribution (DoEC)}} \\
- \hline
- $E_i$ & Erase count of block $i$ \\
- \hline
- $\mu_E$ & Mean erase count per block: $\mu_E = \frac{1}{n}\sum_{i=1}^{n} E_i$ \\
- \hline
- DoEC & Degree of Erase Count (std. dev. of erase counts, wear\_degree) \\
- \hline
- \multicolumn{2}{|c|}{\textit{Fourier Transform Analysis}} \\
- \hline
- $x[n]$ & Sequence of erase counts per block \\
- \hline
- $X[k]$ & Fourier Transform of sequence at frequency $k$ \\
- \hline
- $A[k]$ & Amplitude of Fourier Transform: $A[k] = |X[k]|$ \\
- \hline
- $\mu_A$ & Average amplitude: $\mu_A = \frac{2}{N}\sum_{k=0}^{N/2-1} A[k]$ \\
- \hline
- $\sigma_A$ & Standard deviation of amplitudes \\
- \hline
- $k$ & Frequency component index in Fourier Transform \\
- \hline
- \multicolumn{2}{|c|}{\textit{Allocation Scheme Variables}} \\
- \hline
- $n_{ch}$ & Number of channels in the SSD \\
- \hline
- $n_{cp}$ & Number of chips per channel \\
- \hline
- $n_{die}$ & Number of dies per chip \\
- \hline
- $n_{pl}$ & Number of planes per die \\
- \hline
- $n_{A-D}$ & Number of components A, B, C, or D in priority sequence \\
- \hline
- \end{tabular}
-\end{table}
 
 \subsection{Visual Interpretation Guidance}
 All visual symbols and color codes used in the SSD layout figures are explained in Table~\ref{table:visual_interpretation}. This table serves as the reference for interpreting all SSD visualizations.
@@ -507,12 +446,66 @@ In summary, increased OPS reduces WAF across all workloads, with uniform random 
 
 \section{Analysis of the Simulation Results}
 \label{analysis_of_the_Simulation_Results}
+
+In this section, the simulation results are analyzed through mathematical formulations. A summary of the notations used in Equations~(\ref{eq:doipd}), (\ref{eq:doec}), and (\ref{eq:degree_of_amplitude}) is provided in Table~\ref{table:math_notations}.
+
+\begin{table}[h]
+ \centering
+ \caption{Summary of the mathematical notations used}
+ \label{table:math_notations}
+ \begin{tabular}{|p{1.5cm}|p{6cm}|}
+ \hline
+ \textbf{Symbol} & \textbf{Definition} \\
+ \hline
+ \multicolumn{2}{|c|}{\textit{General SSD Parameters}} \\
+ \hline
+ $n$ & Total number of blocks in the SSD \\
+ \hline
+ $N$ & Length of sequence (number of data points) in Fourier Transform \\
+ \hline
+ PPN & Physical Page Number \\
+ \hline
+ LBA & Logical Block Address \\
+ \hline
+ \multicolumn{2}{|c|}{\textit{Invalid Page Distribution (DoIPD)}} \\
+ \hline
+ $I_i$ & Number of invalid pages in block $i$ \\
+ \hline
+ $\mu_I$ & Mean number of invalid pages per block: $\mu_I = \frac{1}{n}\sum_{i=1}^{n} I_i$ \\
+ \hline
+ DoIPD & Degree of Invalid Page Distribution (std. dev. of invalid pages) \\
+ \hline
+ \multicolumn{2}{|c|}{\textit{Erase Count Distribution (DoEC)}} \\
+ \hline
+ $E_i$ & Erase count of block $i$ \\
+ \hline
+ $\mu_E$ & Mean erase count per block: $\mu_E = \frac{1}{n}\sum_{i=1}^{n} E_i$ \\
+ \hline
+ DoEC & Degree of Erase Count (std. dev. of erase counts, wear\_degree) \\
+ \hline
+ \multicolumn{2}{|c|}{\textit{Fourier Transform Analysis}} \\
+ \hline
+ $x[n]$ & Sequence of erase counts per block \\
+ \hline
+ $X[k]$ & Fourier Transform of sequence at frequency $k$ \\
+ \hline
+ $A[k]$ & Amplitude of Fourier Transform: $A[k] = |X[k]|$ \\
+ \hline
+ $\mu_A$ & Average amplitude: $\mu_A = \frac{2}{N}\sum_{k=0}^{N/2-1} A[k]$ \\
+ \hline
+ $\sigma_A$ & Standard deviation of amplitudes \\
+ \hline
+ $k$ & Frequency component index in Fourier Transform \\
+ \hline
+ \end{tabular}
+\end{table}
+
 \subsection{Analysis of Relationship between WAF and Invalid Page Distribution}
 \label{subsec:InvalidPagesPatterns}
 
 The distribution of invalid pages per block impacts SSD performance and longevity by influencing GC and wear-leveling. Invalid pages, created by updates or deletions, must be efficiently managed to minimize WAF.
 
-Fig.~\ref{fig:invalidpage} presents the distribution of invalid pages per block for the sequential, uniform random, and Zipf workloads. Each histogram is overlaid with a bell curve to highlight the mean and Degree of Invalid Page Distribution (DoIPD) by Equation~\ref{eq:doipd}. The mean of invalid pages per block is expressed as $\mu_I=\frac{1}{n} \sum_{i=1}^{n} I_i$, where $n$ is the number of blocks in an SSD, and $I$ is the number of invalid pages per block.
+Fig.~\ref{fig:invalidpage} presents the distribution of invalid pages per block for the sequential, uniform random, and Zipf workloads. Each histogram is overlaid with a bell curve to highlight the mean and the Degree of Invalid Page Distribution (DoIPD). Defined in Equation~\ref{eq:doipd} as the standard deviation of invalid pages per block, DoIPD is used to evaluate how these variations affect Garbage Collection (GC) efficiency. The mean of invalid pages per block is expressed as $\mu_I=\frac{1}{n} \sum_{i=1}^{n} I_i$, where $n$ is the number of blocks in an SSD, and $I$ is the number of invalid pages per block.
 
 \begin{align}
 DoIPD =\sqrt{\frac{\sum_{i=1}^{n}(I_i - \mu_I)^2}{n}}
@@ -540,8 +533,7 @@ DoEC (wear\_degree) =\sqrt{\frac{\sum_{i=1}^{n}(E_i - \mu_E)^2}{n}}
 \label{eq:doec}
 \end{align}
 
-Fig.~\ref{fig:erasecount} presents a histogram with bell curves to analyze the erase counts for SSD blocks under three access patterns: sequential, uniform random, and Zipf workloads. The sequential workload has the lowest mean erase count (\(\mu = 1.65\)) and the smallest DoEC (\(DoEC = 2.92\)), indicating wear on the SSD blocks is more uniform. The uniform random workload shows higher mean erase counts (\(\mu = 3.02\)) and greater variability (\(DoEC = 4.38\)), while Zipf shows the highest variability (\(DoEC = 4.93\)) suggesting uneven wear.
- The sequential workload is optimal for wear-leveling.
+Fig.~\ref{fig:erasecount} presents a histogram with bell curves to analyze the erase counts for SSD blocks under three access patterns: sequential, uniform random, and Zipf workloads. The sequential workload exhibits the lowest mean erase count (\(\mu = 1.65\)) and the smallest DoEC (\(DoEC = 2.92\)), indicating more uniform wear across the SSD blocks. In contrast, the uniform random workload shows higher mean erase counts (\(\mu = 3.02\)) and increased variability (\(DoEC = 4.38\)), while the Zipf workload displays the highest variability (\(DoEC = 4.93\)), suggesting highly uneven wear. Consequently, the sequential workload demonstrates the most favorable performance for wear-leveling.
 According to the invalid page distribution at the first stage in Fig.~\ref{fig:random_initial}, the uniform random appears best for wear-leveling. However, the erase count analysis in Fig.~\ref{fig:erasecount} and the second stage in Fig.~\ref{fig:random_final} show that sequential is better for wear-leveling. ~\ref{fig:invalidpage}~\ref{fig:invalidpage} This is due to the inherently sequential nature of the workload, as explained in sub-section~\ref{subsec:ComparisonDataPlacement}.
 
 \begin{figure}
@@ -561,7 +553,7 @@ Allocation policies in data storage systems are critical for performance and lon
 \begin{figure}
  \centering
  \includegraphics[width=\linewidth, height=3.8cm]{fig/allocation_policy_comparison_colored_values.png}
- \caption{Heatmap comparing standard deviation of Fourier Transform amplitudes ($\sigma_A$) across five allocation policies (S1-S5) for sequential, uniform random, and Zipf workloads. Lower values (darker colors) indicate better wear-leveling performance}
+ \caption{Bar chart comparing standard deviation of Fourier Transform amplitudes ($\sigma_A$) across five allocation policies (S1--S5) for sequential, uniform random, and Zipf workloads. Lower $\sigma_A$ values indicate more uniform erase count distribution and better wear-leveling performance.}
  \label{fig:allocation_policy_compare_fft}
 \end{figure}
 
@@ -792,7 +784,7 @@ The differences in WAF values between \eyanassdsim and \ftlsim can be attributed
 
 \section{DISCUSSION AND IMPLICATION}
 \label{discussion_and_implication}
-\eyanassdsim is not limited to traditional SSD analysis-it also provides a foundation for exploring emerging storage technologies. Its visualisation capabilities can be extended to support Zoned Storage (ZNS) by tracking per-zone operations. For Flexible Data Placement (FDP), \eyanassdsim enables visualisation of how host placement hints affect physical layout. \eyanassdsim can function as a digital twin~\cite{digital_twin} for SSD subsystems by replicating their structure, behavior, and workload interactions. ~\cite{digital_twin} These strengths position \eyanassdsim as a versatile tool for research and educational purposes.
+\eyanassdsim is not limited to traditional SSD analysis-it also provides a foundation for exploring emerging storage technologies. Its visualisation capabilities can be extended to support Zoned Storage (ZNS) by tracking per-zone operations. For Flexible Data Placement (FDP), \eyanassdsim enables visualisation of how host placement hints affect physical layout. \eyanassdsim can function as a digital twin~\cite{digital_twin} for SSD subsystems by replicating their structure, behavior, and workload interactions. ~\cite{digital_twin} These strengths position \eyanassdsim as a versatile tool for research and educational purposes. In terms of scalability, \eyanassdsim supports configurable SSD parameters (number of blocks, pages per block, and over-provisioning space) to simulate SSDs of varying capacities. However, for very large-scale configurations, visualization performance may be influenced by browser rendering limitations, and aggregated views are recommended in such cases.
 
 \section{Survey Result}
 \label{survey_result}
@@ -800,7 +792,7 @@ We conducted a survey targeting students and professionals in computer engineeri
 
 \section{CONCLUSION}
 \label{conclusion}
-We proposed a web-based SSD simulator, \eyanassdsim, that constructs a visualizable storage stack and models characteristics of SSD internal hardware and software. This simulator serves educational, analytical and research purposes.
+We presented \eyanassdsim, a web-based SSD simulator that provides real-time visualization of internal operations for intuitive performance analysis, wear-leveling evaluation, and education. Experimental results show that sequential workloads exhibit balanced wear-leveling with low write amplification, whereas random workloads produce higher write amplification due to scattered invalidations. Zipf workloads demonstrate the lowest write amplification among the synthetic workloads. Visualized data placement patterns and quantitative metrics, including DoIPD and DoEC, support a systematic comparison of wear-leveling behaviors. Furthermore, we analyzed access patterns and WAF in real-world workloads using Workload Similarity Composition (WSC). Validation against established simulators (FEMU and FTLSim) demonstrates consistent and reasonable results, despite explainable implementation differences. Ultimately, \eyanassdsim offers an accessible, installation-free environment that effectively bridges the gap between complex SSD internals and user-friendly analysis for both research and educational purposes.
 
 \begin{comment}
 \section*{Acknowledgment}
