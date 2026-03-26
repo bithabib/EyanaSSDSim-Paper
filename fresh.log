@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.27 (TeX Live 2025) (preloaded format=pdflatex 2026.2.15)  19 MAR 2026 13:44
+This is pdfTeX, Version 3.141592653-2.6-1.40.27 (TeX Live 2025) (preloaded format=pdflatex 2026.2.15)  24 MAR 2026 01:44
 entering extended mode
  restricted \write18 enabled.
  file:line:error style messages enabled.
@@ -2470,7 +2470,7 @@ L3 programming layer <2020/03/25>
 LaTeX Font Warning: Some font shapes were not available, defaults substituted.
 
 Package rerunfilecheck Info: File `fresh.out' has not changed.
-(rerunfilecheck)             Checksum: 01A5A25D2CDDCB3DC551286BF7552520;6320.
+(rerunfilecheck)             Checksum: 90EC79FB4D6CF988A4A98DB90B83A6CF;6315.
  ) 
 Here is how much of TeX's memory you used:
  19242 strings out of 473190
@@ -2484,7 +2484,7 @@ Here is how much of TeX's memory you used:
 pdfTeX warning (dest): name{section*.21} has been referenced but does not exist, replaced by a fixed one
 
 </usr/local/texlive/2025/texmf-dist/fonts/type1/public/newtx/NewTXMI.pfb></usr/local/texlive/2025/texmf-dist/fonts/type1/public/newtx/NewTXMI5.pfb></usr/local/texlive/2025/texmf-dist/fonts/type1/public/newtx/NewTXMI7.pfb></usr/local/texlive/2025/texmf-dist/fonts/type1/public/newtx/txexs.pfb></usr/local/texlive/2025/texmf-dist/fonts/type1/public/newtx/txmiaX.pfb></usr/local/texlive/2025/texmf-dist/fonts/type1/public/newtx/txsys.pfb></usr/local/texlive/2025/texmf-dist/fonts/type1/urw/courier/ucrr8a.pfb></usr/local/texlive/2025/texmf-dist/fonts/type1/urw/helvetic/uhvb8a.pfb></usr/local/texlive/2025/texmf-dist/fonts/type1/urw/helvetic/uhvbo8a.pfb></usr/local/texlive/2025/texmf-dist/fonts/type1/urw/helvetic/uhvr8a.pfb></usr/local/texlive/2025/texmf-dist/fonts/type1/urw/helvetic/uhvro8a.pfb></usr/local/texlive/2025/texmf-dist/fonts/type1/public/newtx/ztmb.pfb></usr/local/texlive/2025/texmf-dist/fonts/type1/public/newtx/ztmr.pfb></usr/local/texlive/2025/texmf-dist/fonts/type1/public/newtx/ztmri.pfb>
-Output written on fresh.pdf (13 pages, 4003400 bytes).
+Output written on fresh.pdf (13 pages, 4003399 bytes).
 PDF statistics:
  613 PDF objects out of 1000 (max. 8388607)
  502 compressed objects within 6 object streams
