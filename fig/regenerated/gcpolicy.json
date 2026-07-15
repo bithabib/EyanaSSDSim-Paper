@@ -1,0 +1,69 @@
+{
+  "rows": [
+    {
+      "policy": "greedy",
+      "workload": "sequential",
+      "waf": 1.0,
+      "doec": 1.5515,
+      "gini": 0.1133
+    },
+    {
+      "policy": "greedy",
+      "workload": "uniform",
+      "waf": 2.3855,
+      "doec": 2.4809,
+      "gini": 0.0521
+    },
+    {
+      "policy": "greedy",
+      "workload": "zipf",
+      "waf": 1.1313,
+      "doec": 8.3205,
+      "gini": 0.4602
+    },
+    {
+      "policy": "cost_benefit",
+      "workload": "sequential",
+      "waf": 1.0,
+      "doec": 1.5515,
+      "gini": 0.1133
+    },
+    {
+      "policy": "cost_benefit",
+      "workload": "uniform",
+      "waf": 2.3881,
+      "doec": 2.4428,
+      "gini": 0.0453
+    },
+    {
+      "policy": "cost_benefit",
+      "workload": "zipf",
+      "waf": 1.1337,
+      "doec": 7.8451,
+      "gini": 0.4419
+    },
+    {
+      "policy": "fifo",
+      "workload": "sequential",
+      "waf": 1.0196,
+      "doec": 1.0706,
+      "gini": 0.0701
+    },
+    {
+      "policy": "fifo",
+      "workload": "uniform",
+      "waf": 2.4121,
+      "doec": 2.4469,
+      "gini": 0.0406
+    },
+    {
+      "policy": "fifo",
+      "workload": "zipf",
+      "waf": 1.2078,
+      "doec": 9.0973,
+      "gini": 0.4636
+    }
+  ],
+  "total_writes": 2000000,
+  "passes": 3
+}

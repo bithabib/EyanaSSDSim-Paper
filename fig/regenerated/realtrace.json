@@ -1,0 +1,108 @@
+{
+  "ops": [
+    0.25,
+    0.2,
+    0.15,
+    0.1,
+    0.05
+  ],
+  "rows": [
+    {
+      "trace": "TPC-C",
+      "op": 0.25,
+      "waf": 2.5236,
+      "doipd": 28.005,
+      "mean_invalid": 42.317,
+      "unique_lpns": 622967,
+      "n_writes": 1999998
+    },
+    {
+      "trace": "TPC-C",
+      "op": 0.2,
+      "waf": 3.4044,
+      "doipd": 21.025,
+      "mean_invalid": 31.611,
+      "unique_lpns": 622967,
+      "n_writes": 1999998
+    },
+    {
+      "trace": "TPC-C",
+      "op": 0.15,
+      "waf": 5.6679,
+      "doipd": 12.513,
+      "mean_invalid": 17.618,
+      "unique_lpns": 622967,
+      "n_writes": 1999998
+    },
+    {
+      "trace": "TPC-C",
+      "op": 0.1,
+      "waf": 17.3858,
+      "doipd": 4.942,
+      "mean_invalid": 4.999,
+      "unique_lpns": 622967,
+      "n_writes": 1999998
+    },
+    {
+      "trace": "TPC-C",
+      "op": 0.05,
+      "waf": 194.6388,
+      "doipd": 0.16,
+      "mean_invalid": 0.026,
+      "unique_lpns": 622967,
+      "n_writes": 1999998
+    },
+    {
+      "trace": "prxy",
+      "op": 0.25,
+      "waf": 1.2371,
+      "doipd": 50.143,
+      "mean_invalid": 46.916,
+      "unique_lpns": 39185,
+      "n_writes": 1999998
+    },
+    {
+      "trace": "prxy",
+      "op": 0.2,
+      "waf": 1.339,
+      "doipd": 40.722,
+      "mean_invalid": 35.329,
+      "unique_lpns": 39185,
+      "n_writes": 1999998
+    },
+    {
+      "trace": "prxy",
+      "op": 0.15,
+      "waf": 1.4233,
+      "doipd": 38.536,
+      "mean_invalid": 24.961,
+      "unique_lpns": 39185,
+      "n_writes": 1999998
+    },
+    {
+      "trace": "prxy",
+      "op": 0.1,
+      "waf": 1.384,
+      "doipd": 34.673,
+      "mean_invalid": 26.507,
+      "unique_lpns": 39185,
+      "n_writes": 1999998
+    },
+    {
+      "trace": "prxy",
+      "op": 0.05,
+      "waf": 1.3818,
+      "doipd": 37.494,
+      "mean_invalid": 28.575,
+      "unique_lpns": 39185,
+      "n_writes": 1999998
+    }
+  ],
+  "available": [
+    "TPC-C",
+    "prxy"
+  ],
+  "total_writes": 2000000,
+  "passes": 3,
+  "note": "5.03GB SSD, preconditioned to 80% valid, trace replayed 3x (mod capacity) -- same setup as synthetics"
+}

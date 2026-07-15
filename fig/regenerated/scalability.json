@@ -1,0 +1,31 @@
+{
+  "rows": [
+    {
+      "label": "5GB",
+      "raw_gb": 5.03,
+      "total_blocks": 4800,
+      "writes": 663552,
+      "seconds": 1.47,
+      "writes_per_sec": 452420,
+      "waf": 1.0
+    },
+    {
+      "label": "20GB",
+      "raw_gb": 20.13,
+      "total_blocks": 19200,
+      "writes": 2654208,
+      "seconds": 6.06,
+      "writes_per_sec": 437746,
+      "waf": 1.0
+    },
+    {
+      "label": "40GB",
+      "raw_gb": 40.27,
+      "total_blocks": 38400,
+      "writes": 5308416,
+      "seconds": 12.33,
+      "writes_per_sec": 430514,
+      "waf": 1.0
+    }
+  ]
+}
